@@ -1,6 +1,7 @@
-public struct Context {
-    public private(set) var text = "Hello, World!"
+import Foundation
+import SwiftUI
 
-    public init() {
-    }
+protocol ViewContext {
+    var view: AnyView { get }
 }
+
