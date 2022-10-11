@@ -25,7 +25,6 @@ struct Tracker<Context: ViewContext, State: ContextState>: NavigationTrackerProt
         print(description)
     }
 
-
     func trackPresentationContext() {
 
     }

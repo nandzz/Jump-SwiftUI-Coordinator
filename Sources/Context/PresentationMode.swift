@@ -1,6 +1,6 @@
 import Foundation
 
-enum Presentation {
+public enum Presentation {
     
     case push
     case modal

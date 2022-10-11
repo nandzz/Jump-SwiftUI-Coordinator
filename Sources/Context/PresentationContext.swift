@@ -9,17 +9,16 @@ protocol ContextIdentifier {
     ///Current Context being present
     ///The view on screen
     var current: Context { get }
-    var childContext: Context? { get }
+    var childView: AnyView? { get set }
     init(current: Context)
 }
 
-protocol Routable {
+protocol Routable: ObservableObject {
     associatedtype Context: ViewContext
     associatedtype State: ContextState
 
     var isChildPresented: Bool { get set }
     var childPresentationMode: Presentation? { get set }
-    var childContext: Context? { get set }
 
     var next: CurrentValueSubject<(context: Context, state: State)?, Never> { get }
     var back: CurrentValueSubject<(context: Context, state: State)?, Never> { get }
@@ -45,7 +44,6 @@ public class PresentationContext<Context: ViewContext, State: ContextState>: Con
 
     //MARK: CONCRETE CONTEXT - PROPERTIES
     var current: Context
-    var childContext: Context?
     var state: State?
 
     //MARK: CONCRETE ROUTING - SUBJECTS
@@ -54,15 +52,16 @@ public class PresentationContext<Context: ViewContext, State: ContextState>: Con
     internal var root: CurrentValueSubject<(context: Context, state: State)?, Never>
 
     //MARK: CONCRETE ROUTING - ACTIONS FUNCTIONS
-    func next(emit state: State) { next.send((context: current, state: state)) }
-    func back(emit state: State) { back.send((context: current, state: state)) }
-    func root(emit state: State) { root.send((context: current, state: state)) }
+    public func next(emit state: State) { next.send((context: current, state: state)) }
+    public func back(emit state: State) { back.send((context: current, state: state)) }
+    public func root(emit state: State) { root.send((context: current, state: state)) }
 
     //MARK: CONCRETE ROUTING - PROPERTIES
-    var isChildPresented: Bool = false
-    var childPresentationMode: Presentation?
+    @Published public var isChildPresented: Bool = false
+    @Published public var childPresentationMode: Presentation?
+    @Published public var childView: AnyView?
 
-    required init(current: Context) {
+    public required init(current: Context) {
         self.current = current
         self.next = .init(nil)
         self.back = .init(nil)

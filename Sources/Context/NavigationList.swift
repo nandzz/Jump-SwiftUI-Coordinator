@@ -1,6 +1,6 @@
 import Foundation
 
-internal class Node<Context: ViewContext, Status: ContextState> {
+public class Node<Context: ViewContext, Status: ContextState> {
     var previous: Node<Context, Status>?
     var next: Node<Context, Status>?
     var value: PresentationContext<Context, Status>
@@ -10,8 +10,7 @@ internal class Node<Context: ViewContext, Status: ContextState> {
     }
 }
 
-
-internal class NavigationLink<Context: ViewContext, Status: ContextState> {
+public class NavigationList<Context: ViewContext, Status: ContextState> {
 
     private var head: Node<Context, Status>?
     private var tail: Node<Context, Status>?
@@ -47,16 +46,12 @@ internal class NavigationLink<Context: ViewContext, Status: ContextState> {
         return head?.value
     }
 
-    func appendContext(_ context: PresentationContext<Context, Status>, mode: Presentation) {
+    func appendContext(_ context: PresentationContext<Context, Status>) {
         guard !isEmpty else {
             push(context)
             return
         }
-
-        tail?.value.isChildPresented = true
-        tail?.value.childContext = context.current
-        tail?.value.childPresentationMode = mode
-
+        
         tail!.next = Node(value: context)
         tail = tail?.next
 

@@ -7,25 +7,25 @@ let package = Package(
     name: "Context",
     platforms: [.iOS(.v14)],
     products: [
-        // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
             name: "Context",
-            targets: ["Context"]),
+            targets: ["Context", "UITest"]),
     ],
-    dependencies: [
-        .package(
-             url: "https://github.com/apple/swift-collections.git",
-             .upToNextMajor(from: "1.0.3") // or `.upToNextMinor
-           )
-    ],
+    dependencies: [],
     targets: [
         .target(
             name: "Context",
-            dependencies: [
-                .product(name: "Collections", package: "swift-collections")
-            ]),
+            dependencies: []),
+
+        .target(
+            name: "UITest",
+            dependencies: [ "Context"],
+            path: "./UITest/Examples"
+          ),
+
         .testTarget(
             name: "ContextTests",
             dependencies: ["Context"]),
+        
     ]
 )
