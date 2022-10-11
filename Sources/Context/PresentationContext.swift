@@ -1,64 +1,72 @@
 import Foundation
 import Combine
+import SwiftUI
 
 //MARK: - INTERFACE
+
 protocol ContextIdentifier {
-    associatedtype Context: ViewContext
+    associatedtype Context
     ///Current Context being present
     ///The view on screen
-    var current: ViewContext { get }
-    var childContext: ViewContext? { get }
-
-    init(current: ViewContext)
+    var current: Context { get }
+    var childContext: Context? { get }
+    init(current: Context)
 }
 
 protocol Routable {
     associatedtype Context: ViewContext
+    associatedtype State: ContextState
+
     var isChildPresented: Bool { get set }
     var childPresentationMode: Presentation? { get set }
-    var next: CurrentValueSubject<Context?, Never> { get }
-    var back: CurrentValueSubject<Context?, Never> { get }
-    var root: CurrentValueSubject<Context?, Never> { get }
-    var onNext: AnyPublisher<Context?, Never> { get }
-    var onBack: AnyPublisher<Context?, Never> { get }
-    var onRoot: AnyPublisher<Context?, Never> { get }
-    func next(_ context: Context)
-    func back(_ current: Context)
-    func root(_ context: Context)
+    var childContext: Context? { get set }
+
+    var next: CurrentValueSubject<(context: Context, state: State)?, Never> { get }
+    var back: CurrentValueSubject<(context: Context, state: State)?, Never> { get }
+    var root: CurrentValueSubject<(context: Context, state: State)?, Never> { get }
+    var onNext: AnyPublisher<(context: Context, state: State)?, Never> { get }
+    var onBack: AnyPublisher<(context: Context, state: State)?, Never> { get }
+    var onRoot: AnyPublisher<(context: Context, state: State)?, Never> { get }
+    func next(emit state: State)
+    func back(emit state: State)
+    func root(emit state: State)
+}
+
+extension Routable {
+    //MARK: CONCRETE ROUTING - OBSERVERS
+    var onNext: AnyPublisher<(context: Context, state: State)?, Never> { next.eraseToAnyPublisher() }
+    var onBack: AnyPublisher<(context: Context, state: State)?, Never> { back.eraseToAnyPublisher() }
+    var onRoot: AnyPublisher<(context: Context, state: State)?, Never> { root.eraseToAnyPublisher() }
 }
 
 //MARK: - CONCRETE
 
-class PresentationContext<Context: ViewContext>: ContextIdentifier, Routable {
-    typealias Context = Context
+public class PresentationContext<Context: ViewContext, State: ContextState>: ContextIdentifier, Routable {
 
     //MARK: CONCRETE CONTEXT - PROPERTIES
-    var current: ViewContext
-    var childContext: ViewContext?
+    var current: Context
+    var childContext: Context?
+    var state: State?
 
     //MARK: CONCRETE ROUTING - SUBJECTS
-    internal var next: CurrentValueSubject<Context?, Never>
-    internal var back: CurrentValueSubject<Context?, Never>
-    internal var root: CurrentValueSubject<Context?, Never>
-
-    //MARK: CONCRETE ROUTING - OBSERVERS
-    var next: AnyPublisher<Context?, Never> { next.eraseToAnyPublisher() }
-    var back: AnyPublisher<Context?, Never> { back.eraseToAnyPublisher() }
-    var root: AnyPublisher<Context?, Never> { root.eraseToAnyPublisher() }
+    internal var next: CurrentValueSubject<(context: Context, state: State)?, Never>
+    internal var back: CurrentValueSubject<(context: Context, state: State)?, Never>
+    internal var root: CurrentValueSubject<(context: Context, state: State)?, Never>
 
     //MARK: CONCRETE ROUTING - ACTIONS FUNCTIONS
-    func next(_ context: Context) { next.send(context) }
-    func back(_ current: Context) { back.send(current) }
-    func root(_ current: Context) { root.send(current) }
+    func next(emit state: State) { next.send((context: current, state: state)) }
+    func back(emit state: State) { back.send((context: current, state: state)) }
+    func root(emit state: State) { root.send((context: current, state: state)) }
 
     //MARK: CONCRETE ROUTING - PROPERTIES
     var isChildPresented: Bool = false
     var childPresentationMode: Presentation?
 
-    required init(current: ViewContext) {
+    required init(current: Context) {
         self.current = current
         self.next = .init(nil)
         self.back = .init(nil)
         self.root = .init(nil)
     }
 }
+

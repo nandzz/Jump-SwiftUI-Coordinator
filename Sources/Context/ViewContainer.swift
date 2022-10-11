@@ -1,6 +1,7 @@
 import Foundation
 
 protocol ViewContainer {
-    associatedtype Context
-    var presentationContext: PresentationContextProtocol { get }
+    associatedtype Context: ViewContext
+    associatedtype Status: ContextState
+    var presentationContext: PresentationContext<Context, Status> { get }
 }

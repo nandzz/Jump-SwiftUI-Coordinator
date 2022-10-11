@@ -1,13 +1,8 @@
-//
-//  NavigationListTest.swift
-//  
-//
-//  Created by Felipe Fernandes on 21/09/22.
-//
-
 import XCTest
+@testable import Context
 
 class NavigationListTest: XCTestCase {
+
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
