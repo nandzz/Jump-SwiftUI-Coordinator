@@ -11,7 +11,7 @@ fileprivate protocol RouterProtocol {
     var currentContext: Context { get }
     var rootView: AnyView? { get }
     var list: NavigationList<Context, State> { get }
-    var routingState: State? { get set }
+    var state: State? { get set }
 
     func show(context: Context, mode: Presentation)
     func drop()
@@ -29,32 +29,67 @@ fileprivate protocol RouterProtocol {
 
 open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
 
-    //MARK: SUBSCRIPTIONS
+
+    /// The store of all subscriptions, each context presented has observers of events
+    ///
+    ///                onNext()
+    ///                onRoot()
+    ///                onPop()
+    ///
+    ///This are the observer of each context
     var subscriptions: [AnyCancellable] = []
 
-    //MARK: CONTEXT
+    /// This property has the rootPresentation Context
     weak internal var rootPresentation: PresentationContext<Context, State>!
+    ///This property has the current Presentation Context
+    ///instead use the  `currentContext` to know which context the router is presenting
     weak internal var currentPresentation: PresentationContext<Context, State>!
 
+    ///Store the current Context being presented
+    ///This property is updated automatically
+    ///Use this property to decide the next routing decision
+    ///This property is an enum and has to be switched
+    ///
+    ///             switch currentContext {
+    ///                 case .viewA:
+    ///                 case .viewB:
+    ///                 case .viewD:
+    ///             }
+    ///
     public var currentContext: Context {
         assert(rootPresentation != nil)
         assert(currentPresentation != nil)
         return currentPresentation.current
     }
 
-    //MARK: ROUTING STATUS
-    public var routingState: State?
+    ///Represents the current State of the Router
+    ///This property is set by the View in Wich has the responsibility to set the state of the router
+    public var state: State?
 
-    //MARK: ROOT VIEW
+    ///The root view controller
+    ///The view usually is used when initing the router
     var rootView: AnyView?
 
     //MARK: LIST
-    let list: NavigationList<Context, State> = .init()
+
+    ///The routes are store in the list
+    ///This property can't be called from outside, instead use the public properties
+    ///
+    ///    - show
+    ///    - drop (to:)
+    ///    - drop
+    ///    - showRoot
+    ///
+    ///By calling these methods the context are automatically added or removed from the list
+    internal let list: NavigationList<Context, State> = .init()
 
     //MARK: INIT
+
     required public init(root: Context) {
         show(context: root)
     }
+
+    //MARK: HELP FUNCTIONS
 
     public func show(context: Context, mode: Presentation = .push) {
         let nextPresentation = PresentationContext<Context, State>(current: context)
@@ -119,19 +154,20 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
     // MARK: ROUTING OBSERVER
 
     open func onNext(state: State) {
-        self.routingState = state
+        self.state = state
     }
 
     open func onPop(state: State) {
-        self.routingState = state
+        self.state = state
     }
 
     open func onPop(to context: Context, state: State) {
-        self.routingState = state
+        self.state = state
     }
 
     open func onRoot(state: State) {
-        self.routingState = state
+        self.state = state
+        
     }
 
 }

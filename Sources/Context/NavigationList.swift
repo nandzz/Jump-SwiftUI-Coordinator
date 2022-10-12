@@ -29,18 +29,6 @@ public class NavigationList<Context: ViewContext, Status: ContextState> {
         return tail
     }
 
-
-
-    private func pop() -> PresentationContext<Context, Status>? {
-        defer {
-            head = head?.next
-            if isEmpty {
-                tail = nil
-            }
-        }
-        return head?.value
-    }
-
     func appendContext(_ context: PresentationContext<Context, Status>) {
         guard !isEmpty else {
             head = Node(value: context)
@@ -52,7 +40,7 @@ public class NavigationList<Context: ViewContext, Status: ContextState> {
         node.previous = tail
         tail!.next = node
         self.tail = node
-        
+
         tracker.trackNavigationList(head: head)
     }
 
@@ -80,7 +68,6 @@ public class NavigationList<Context: ViewContext, Status: ContextState> {
         
         return current?.value
     }
-
 
     func dropTill(_ context: Context,
                   onLast: @escaping (PresentationContext<Context, Status>?) -> Void) {
