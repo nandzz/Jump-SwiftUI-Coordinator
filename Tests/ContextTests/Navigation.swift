@@ -160,11 +160,30 @@ class NavigationTest: XCTestCase {
 
     }
 
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
+    func test_small_stack_navigation() throws {
+        sut = ExampleRouter(routes: [.root, .viewJ, .viewH, .viewF])
+        XCTAssertEqual(sut.currentContext, .viewF)
     }
 
+    func test_large_stack_navigation() throws {
+
+        sut = ExampleRouter(routes: [
+            .root,
+            .viewJ,
+            .viewH,
+            .viewF,
+            .viewJ,
+            .viewJ,
+            .viewG,
+            .viewH,
+            .viewA,
+            .viewF,
+            .viewJ,
+            .viewH,
+            .viewE,
+            .viewF
+        ])
+
+        XCTAssertEqual(sut.currentContext, .viewF)
+    }
 }

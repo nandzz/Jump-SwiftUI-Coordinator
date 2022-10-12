@@ -14,6 +14,7 @@ fileprivate protocol RouterProtocol {
     var state: State? { get set }
 
     func show(context: Context, mode: Presentation)
+    func show(contexts: [Context], mode: Presentation)
     func drop()
     func drop(to context: Context)
     func showRoot()
@@ -89,8 +90,35 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
         show(context: root)
     }
 
-    //MARK: HELP FUNCTIONS
+    ///This init is used when you want to start the router with sequencial presentation
+    /// - Parameters:
+    ///    - contexts It takes an array of contexts to be initialized
+    convenience public init(routes: [Context]) {
+        guard let first = routes.first else {
+            fatalError("It has to contain at least one context for the routes")
+        }
+        self.init(root: first)
+        self.show(contexts: Array(routes.dropFirst()))
+    }
 
+    //MARK: HELP FUNCTIONS
+    ///This method is called to show a list of contexts in sequence
+    ///
+    /// - Parameters:
+    ///    - contexts It takes an array of contexts to be initialized
+    ///    - mode The mode of presentation for the contexts
+    public func show(contexts: [Context], mode: Presentation = .push) {
+        contexts.forEach { context in
+            show(context: context, mode: mode)
+        }
+    }
+
+
+    ///This method is called to show a list of contexts in sequence
+    ///
+    /// - Parameters:
+    ///    - context It takes the context to be shown
+    ///    - mode The mode of presentation for the contexts
     public func show(context: Context, mode: Presentation = .push) {
         let nextPresentation = PresentationContext<Context, State>(current: context)
 
@@ -128,6 +156,10 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
         }
     }
 
+    ///This method is called to drop to a specific context
+    ///
+    /// - Parameters:
+    ///    - to the specif context you want to drop to
     public func drop(to context: Context) {
         list.dropTill(context) { [weak self] current in
             self?.currentPresentation = current
@@ -137,12 +169,14 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
         }
     }
 
+    ///This method is called to drop till the root of the router
     public func showRoot() {
         list.dropTillHead { [weak self] root in
             self?.currentPresentation = root
         }
     }
 
+    ///This method is called to drop the last context being presented
     public func drop() {
         let last = list.dropLastContext()
         self.currentPresentation = last
@@ -152,7 +186,7 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
     }
 
     // MARK: ROUTING OBSERVER
-
+    
     open func onNext(state: State) {
         self.state = state
     }

@@ -133,7 +133,12 @@ public class NavigationList<Context: ViewContext, Status: ContextState> {
         tracker.trackNavigationList(head: head)
     }
 
-    func addContextList(_ context: [Context] ) {}
+    func addContextList(_ context: [Context] ) {
+
+
+
+
+    }
 
 }
 
