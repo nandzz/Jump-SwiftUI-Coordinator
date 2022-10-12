@@ -1,23 +1,163 @@
 import XCTest
 @testable import Context
+@testable import Mocks
 
-class NavigationListTest: XCTestCase {
+class NavigationTest: XCTestCase {
 
+    var sut: ExampleRouter!
 
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        sut = ExampleRouter(root: .root)
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    override func tearDownWithError() throws {}
+
+    func test_root_is_presented() throws {
+        XCTAssertNotNil(sut.rootView)
+        XCTAssert(sut.currentPresentation?.current == .root)
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
+    func test_two_presentations() throws {
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        XCTAssert(sut.currentPresentation?.current == .viewB)
+    }
+
+    func test_five_presentations() throws {
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+
+        XCTAssert(sut.currentPresentation?.current == .viewE)
+    }
+
+    func test_drop_last_context() throws {
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+
+        sut.onPop(state: .idle)
+        XCTAssertEqual(sut.currentContext, .viewD)
+    }
+
+    func test_drop_two_contexts() throws {
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+
+        sut.onPop(state: .idle)
+        sut.onPop(state: .idle)
+        XCTAssertEqual(sut.currentContext, .viewC)
+    }
+
+    func test_drop_single_till_root() throws {
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+
+        sut.onPop(state: .idle)
+        sut.onPop(state: .idle)
+        sut.onPop(state: .idle)
+        sut.onPop(state: .idle)
+        sut.onPop(state: .idle)
+        XCTAssertEqual(sut.currentContext, .root)
+    }
+
+    func test_drop_single_till_root_drop_root() throws {
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+
+        sut.onPop(state: .idle)
+        sut.onPop(state: .idle)
+        sut.onPop(state: .idle)
+        sut.onPop(state: .idle)
+        sut.onPop(state: .idle)
+        sut.onPop(state: .idle)
+        XCTAssertEqual(sut.currentPresentation?.current, nil)
+    }
+
+    func test_drop_till_head_context() throws {
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+
+        sut.onPop(to: .root, state: .idle)
+        XCTAssertEqual(sut.currentContext, .root)
+    }
+
+    func test_drop_till_middle_context() throws {
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+
+        sut.onPop(to: .viewA, state: .idle)
+        XCTAssertEqual(sut.currentContext, .viewA)
+    }
+
+    func test_drop_till_one_context() throws {
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+
+        sut.onPop(to: .viewD, state: .idle)
+        XCTAssertEqual(sut.currentContext, .viewD)
+    }
+
+
+    func test_show_root() throws {
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+
+        sut.onRoot(state: .idle)
+        XCTAssertEqual(sut.currentContext, .root)
+    }
+
+    func test_pop_present_cycle() throws {
+
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+
+        sut.onPop(state: .idle)
+        sut.onPop(state: .idle)
+        sut.onPop(state: .idle)
+        sut.onPop(state: .idle)
+
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+
+        sut.onPop(state: .idle)
+        sut.onPop(state: .idle)
+        sut.onPop(state: .idle)
+
+        sut.onNext(state: .idle)
+        sut.onNext(state: .idle)
+
+        XCTAssertEqual(sut.currentContext, .viewC)
+
     }
 
     func testPerformanceExample() throws {

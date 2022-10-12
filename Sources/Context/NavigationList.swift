@@ -29,12 +29,7 @@ public class NavigationList<Context: ViewContext, Status: ContextState> {
         return tail
     }
 
-    private func push(_ context: PresentationContext<Context, Status>) {
-        head = Node(value: context)
-        if tail == nil {
-            tail = head
-        }
-    }
+
 
     private func pop() -> PresentationContext<Context, Status>? {
         defer {
@@ -48,39 +43,42 @@ public class NavigationList<Context: ViewContext, Status: ContextState> {
 
     func appendContext(_ context: PresentationContext<Context, Status>) {
         guard !isEmpty else {
-            push(context)
+            head = Node(value: context)
+            tail = head
             return
         }
-        
-        tail!.next = Node(value: context)
-        tail = tail?.next
 
+        let node = Node(value: context)
+        node.previous = tail
+        tail!.next = node
+        self.tail = node
+        
         tracker.trackNavigationList(head: head)
     }
 
-    func dropLastContext(_ context: Context) -> PresentationContext<Context, Status>? {
-        guard let head = head else {
+    func dropLastContext() -> PresentationContext<Context, Status>? {
+        guard let tail = tail else {
             return nil
         }
 
-        guard head.next != nil else {
-            return pop()
+        guard tail.previous != nil else {
+            self.head?.next = nil
+            self.head = nil
+            self.tail?.previous = nil
+            self.tail = nil
+            tracker.trackNavigationList(head: head)
+            return nil
         }
 
-        var prev = head
-        var current = head
+        let prev = tail.previous
+        let current = tail.previous
 
-        while let next = current.next {
-            prev = current
-            current = next
-        }
-
-        prev.next = nil
-        tail = prev
+        prev?.next = nil
+        self.tail = prev
 
         tracker.trackNavigationList(head: head)
         
-        return current.previous?.value
+        return current?.value
     }
 
 
@@ -118,12 +116,13 @@ public class NavigationList<Context: ViewContext, Status: ContextState> {
         tracker.trackNavigationList(head: head)
     }
 
-    func dropTillHead(_ context: Context, onRoot: @escaping (PresentationContext<Context, Status>?) -> Void) {
+    func dropTillHead(onRoot: @escaping (PresentationContext<Context, Status>?) -> Void) {
 
         guard let tail = tail else {
             return
         }
 
+        
         var current = tail
 
         while (current.previous != nil) {
@@ -134,7 +133,8 @@ public class NavigationList<Context: ViewContext, Status: ContextState> {
 
             current.previous?.next = nil
             self.tail = current.previous
-            current = tail
+            current.previous = nil
+            current = self.tail!
         }
 
         DispatchQueue.main.async {

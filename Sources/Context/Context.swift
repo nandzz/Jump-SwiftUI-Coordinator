@@ -1,10 +1,7 @@
 import Foundation
 import SwiftUI
 
-public protocol ViewContext: Equatable, Identifiable {
-    associatedtype ContextName: Hashable
-    var id: UUID { get }
-    var name: ContextName { get set }
+public protocol ViewContext: Equatable, Hashable {
     var view: AnyView { get }
 }
 

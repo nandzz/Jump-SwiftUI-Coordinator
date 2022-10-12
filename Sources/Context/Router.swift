@@ -6,22 +6,22 @@ fileprivate protocol RouterProtocol {
     associatedtype Context: ViewContext
     associatedtype State: ContextState
 
-    var root: PresentationContext<Context, State>? { get }
+    var rootPresentation: PresentationContext<Context, State>! { get }
+    var currentPresentation: PresentationContext<Context, State>! { get }
+    var currentContext: Context { get }
     var rootView: AnyView? { get }
-    var current: PresentationContext<Context, State>? { get }
     var list: NavigationList<Context, State> { get }
     var routingState: State? { get set }
 
-    func get(context: Context, mode: Presentation)
-    func back(state: State)
-    func dropTill(from context: Context, state: State)
-    func drop(state: State)
-    func dropTillRoot(state: State)
+    func show(context: Context, mode: Presentation)
+    func drop()
+    func drop(to context: Context)
+    func showRoot()
 
-    func onNext(from context: Context, state: State)
-    func onPop(from context: Context, state: State)
-    func onPop(from context: Context, to: Context, state: State)
-    func onRoot(from context: Context, state: State)
+    func onNext(state: State)
+    func onPop(state: State)
+    func onPop(to: Context, state: State)
+    func onRoot(state: State)
 
 
     init(root: Context)
@@ -29,13 +29,18 @@ fileprivate protocol RouterProtocol {
 
 open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
 
-
     //MARK: SUBSCRIPTIONS
     var subscriptions: [AnyCancellable] = []
 
     //MARK: CONTEXT
-    weak public var root: PresentationContext<Context, State>?
-    weak public var current: PresentationContext<Context, State>?
+    weak internal var rootPresentation: PresentationContext<Context, State>!
+    weak internal var currentPresentation: PresentationContext<Context, State>!
+
+    public var currentContext: Context {
+        assert(rootPresentation != nil)
+        assert(currentPresentation != nil)
+        return currentPresentation.current
+    }
 
     //MARK: ROUTING STATUS
     public var routingState: State?
@@ -48,64 +53,85 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
 
     //MARK: INIT
     required public init(root: Context) {
-        get(context: root)
+        show(context: root)
     }
 
-    public func get(context: Context, mode: Presentation = .push) {
-
+    public func show(context: Context, mode: Presentation = .push) {
         let nextPresentation = PresentationContext<Context, State>(current: context)
 
-        if root == nil {
-            self.root = nextPresentation
+        if rootPresentation == nil {
+            self.rootPresentation = nextPresentation
             self.rootView = AnyView(context.view.environmentObject(nextPresentation))
         }
 
         nextPresentation.onNext.sink { [weak self] stream in
             guard let stream = stream else { return }
-            self?.onNext(from: stream.context, state: stream.state)
+            self?.onNext(state: stream.state)
         }.store(in: &subscriptions)
 
         nextPresentation.onRoot.sink { [weak self] stream in
             guard let stream = stream else { return }
-            self?.onRoot(from: stream.context, state: stream.state)
+            self?.onRoot(state: stream.state)
         }.store(in: &subscriptions)
 
         nextPresentation.onBack.sink { [weak self] stream in
             guard let stream = stream else { return }
-            self?.onPop(from: stream.context, state: stream.state)
+            self?.onPop(state: stream.state)
         }.store(in: &subscriptions)
 
-        if current == nil {
-            self.current = nextPresentation
+        if currentPresentation == nil {
+            self.currentPresentation = nextPresentation
             self.list.appendContext(nextPresentation)
         } else {
             DispatchQueue.main.async {
-                self.current?.childView = AnyView(context.view.environmentObject(nextPresentation))
-                self.current?.isChildPresented = true
-                self.current?.childPresentationMode = mode
+                self.currentPresentation?.childView = AnyView(context.view.environmentObject(nextPresentation))
+                self.currentPresentation?.isChildPresented = true
+                self.currentPresentation?.childPresentationMode = mode
             }
+            self.currentPresentation = nextPresentation
             self.list.appendContext(nextPresentation)
         }
     }
 
-    public func back(state: State) {}
+    public func drop(to context: Context) {
+        list.dropTill(context) { [weak self] current in
+            self?.currentPresentation = current
+        }
+        DispatchQueue.main.async {
+            self.currentPresentation?.isChildPresented = false
+        }
+    }
 
-    public func dropTill(from context: Context, state: State) {}
+    public func showRoot() {
+        list.dropTillHead { [weak self] root in
+            self?.currentPresentation = root
+        }
+    }
 
-    public func dropTillRoot(state: State) {}
-
-    public func drop(state: State) {}
+    public func drop() {
+        let last = list.dropLastContext()
+        self.currentPresentation = last
+        DispatchQueue.main.async {
+            self.currentPresentation?.isChildPresented = false
+        }
+    }
 
     // MARK: ROUTING OBSERVER
 
-    open func onNext(from context: Context, state: State) {
+    open func onNext(state: State) {
         self.routingState = state
     }
 
-    open func onPop(from context: Context, state: State) {}
+    open func onPop(state: State) {
+        self.routingState = state
+    }
 
-    open func onPop(from context: Context, to: Context, state: State) {}
+    open func onPop(to context: Context, state: State) {
+        self.routingState = state
+    }
 
-    open func onRoot(from context: Context, state: State) {}
+    open func onRoot(state: State) {
+        self.routingState = state
+    }
 
 }

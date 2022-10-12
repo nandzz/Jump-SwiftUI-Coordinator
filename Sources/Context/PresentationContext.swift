@@ -5,7 +5,7 @@ import SwiftUI
 //MARK: - INTERFACE
 
 protocol ContextIdentifier {
-    associatedtype Context
+    associatedtype Context: ViewContext
     ///Current Context being present
     ///The view on screen
     var current: Context { get }
@@ -43,7 +43,8 @@ extension Routable {
 public class PresentationContext<Context: ViewContext, State: ContextState>: ContextIdentifier, Routable {
 
     //MARK: CONCRETE CONTEXT - PROPERTIES
-    var current: Context
+    public var current: Context
+
     var state: State?
 
     //MARK: CONCRETE ROUTING - SUBJECTS

@@ -9,23 +9,20 @@ let package = Package(
     products: [
         .library(
             name: "Context",
-            targets: ["Context", "UITest"]),
+            targets: ["Context"]),
     ],
     dependencies: [],
     targets: [
         .target(
             name: "Context",
             dependencies: []),
-
         .target(
-            name: "UITest",
+            name: "Mocks",
             dependencies: [ "Context"],
-            path: "./UITest/Examples"
-          ),
-
+            path: "./Tests/Mocks"
+        ),
         .testTarget(
             name: "ContextTests",
-            dependencies: ["Context"]),
-        
+            dependencies: ["Context", "Mocks"]),
     ]
 )

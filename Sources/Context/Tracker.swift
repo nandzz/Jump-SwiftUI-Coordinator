@@ -12,15 +12,17 @@ struct Tracker<Context: ViewContext, State: ContextState>: NavigationTrackerProt
 
     func trackNavigationList(head: Node<Context, State>?) {
         let description: String = {
-          var text = "["
-          var node = head
+            var text = "["
+            var node = head
 
-          while node != nil {
-            text += "\(node!.value)"
-            node = node!.next
-            if node != nil { text += ", " }
-          }
-          return text + "]"
+            while node != nil {
+                text += "\(node!.value.current)"
+                node = node!.next
+                if node != nil {
+                    text += " --> "
+                }
+            }
+            return text + "]"
         }()
         print(description)
     }
