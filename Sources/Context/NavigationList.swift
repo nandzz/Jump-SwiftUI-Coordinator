@@ -29,6 +29,8 @@ public class NavigationList<Context: ViewContext, Status: ContextState> {
         return tail
     }
 
+    var lock = NSLock()
+
     func appendContext(_ context: PresentationContext<Context, Status>) {
         guard !isEmpty else {
             head = Node(value: context)
@@ -65,7 +67,7 @@ public class NavigationList<Context: ViewContext, Status: ContextState> {
         self.tail = prev
 
         tracker.trackNavigationList(head: head)
-        
+
         return current?.value
     }
 
@@ -81,7 +83,11 @@ public class NavigationList<Context: ViewContext, Status: ContextState> {
 
         while (current.previous != nil) {
 
-            DispatchQueue.main.async {
+
+            let previusMode = current.previous?.value.childPresentationMode
+            if  previusMode == .fullScreen ||
+                previusMode == .modal ||
+                previusMode == .sheet {
                 current.previous?.value.isChildPresented = false
             }
 
@@ -104,41 +110,31 @@ public class NavigationList<Context: ViewContext, Status: ContextState> {
     }
 
     func dropTillHead(onRoot: @escaping (PresentationContext<Context, Status>?) -> Void) {
-
         guard let tail = tail else {
             return
         }
 
-        
         var current = tail
 
         while (current.previous != nil) {
-
-            DispatchQueue.main.async {
+            let previusMode = current.previous?.value.childPresentationMode
+            if  previusMode == .fullScreen ||
+                previusMode == .modal ||
+                previusMode == .sheet {
                 current.previous?.value.isChildPresented = false
             }
-
             current.previous?.next = nil
             self.tail = current.previous
             current.previous = nil
             current = self.tail!
         }
 
-        DispatchQueue.main.async {
-            self.head?.value.isChildPresented = false
-        }
-
+        self.head?.value.isChildPresented = false
         onRoot(head?.value)
-
         tracker.trackNavigationList(head: head)
     }
 
-    func addContextList(_ context: [Context] ) {
-
-
-
-
-    }
+    func addContextList(_ context: [Context] ) {}
 
 }
 

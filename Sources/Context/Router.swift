@@ -2,20 +2,25 @@ import Foundation
 import SwiftUI
 import Combine
 
+
+
 fileprivate protocol RouterProtocol {
     associatedtype Context: ViewContext
     associatedtype State: ContextState
 
+    typealias SequentialNavigation = (context: Context, Presentation)
+
     var rootPresentation: PresentationContext<Context, State>! { get }
     var currentPresentation: PresentationContext<Context, State>! { get }
     var currentContext: Context { get }
+    var contextSequential: [SequentialNavigation]? { get }
     var rootView: AnyView? { get }
     var list: NavigationList<Context, State> { get }
     var state: State? { get set }
 
     func show(context: Context, mode: Presentation)
-    func show(contexts: [Context], mode: Presentation)
-    func drop()
+    func show(contexts: [SequentialNavigation])
+    func drop() async
     func drop(to context: Context)
     func showRoot()
 
@@ -24,12 +29,20 @@ fileprivate protocol RouterProtocol {
     func onPop(to: Context, state: State)
     func onRoot(state: State)
 
-
     init(root: Context)
 }
 
 open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
 
+    public typealias SequentialNavigation = (context: Context, Presentation)
+
+    let main = DispatchQueue(
+        label: "main-context-thread",
+        qos: .userInteractive,
+        attributes: .initiallyInactive,
+        autoreleaseFrequency: .workItem,
+        target: .main
+    )
 
     /// The store of all subscriptions, each context presented has observers of events
     ///
@@ -63,13 +76,16 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
         return currentPresentation.current
     }
 
+    ///Context sequential is used in case you need to route to a specific place given an specific condition
+    fileprivate var contextSequential: [SequentialNavigation]?
+
     ///Represents the current State of the Router
     ///This property is set by the View in Wich has the responsibility to set the state of the router
     public var state: State?
 
     ///The root view controller
     ///The view usually is used when initing the router
-    var rootView: AnyView?
+    public var rootView: AnyView?
 
     //MARK: LIST
 
@@ -88,16 +104,17 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
 
     required public init(root: Context) {
         show(context: root)
+        main.activate()
     }
 
     ///This init is used when you want to start the router with sequencial presentation
     /// - Parameters:
     ///    - contexts It takes an array of contexts to be initialized
-    convenience public init(routes: [Context]) {
+    convenience public init(routes: [SequentialNavigation]) {
         guard let first = routes.first else {
             fatalError("It has to contain at least one context for the routes")
         }
-        self.init(root: first)
+        self.init(root: first.0)
         self.show(contexts: Array(routes.dropFirst()))
     }
 
@@ -107,12 +124,18 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
     /// - Parameters:
     ///    - contexts It takes an array of contexts to be initialized
     ///    - mode The mode of presentation for the contexts
-    public func show(contexts: [Context], mode: Presentation = .push) {
-        contexts.forEach { context in
-            show(context: context, mode: mode)
-        }
+    public func show(contexts: [SequentialNavigation]) {
+//        UIView.setAnimationsEnabled(false)
+//        for (index, context) in contexts.enumerated() {
+//            DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100 * index), execute: {
+//                self.show(context: context as! Context, mode: mode)
+//            })
+//        }
+//
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+//              UIView.setAnimationsEnabled(true)
+//          }
     }
-
 
     ///This method is called to show a list of contexts in sequence
     ///
@@ -142,17 +165,21 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
             self?.onPop(state: stream.state)
         }.store(in: &subscriptions)
 
+        nextPresentation.onSequencial.sink { [weak self] stream in
+            guard let state = stream else { return }
+        }.store(in: &subscriptions)
+
         if currentPresentation == nil {
             self.currentPresentation = nextPresentation
             self.list.appendContext(nextPresentation)
         } else {
-            DispatchQueue.main.async {
+            main.async {
                 self.currentPresentation?.childView = AnyView(context.view.environmentObject(nextPresentation))
                 self.currentPresentation?.isChildPresented = true
                 self.currentPresentation?.childPresentationMode = mode
+                self.currentPresentation = nextPresentation
+                self.list.appendContext(nextPresentation)
             }
-            self.currentPresentation = nextPresentation
-            self.list.appendContext(nextPresentation)
         }
     }
 
@@ -161,27 +188,29 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
     /// - Parameters:
     ///    - to the specif context you want to drop to
     public func drop(to context: Context) {
-        list.dropTill(context) { [weak self] current in
-            self?.currentPresentation = current
-        }
-        DispatchQueue.main.async {
-            self.currentPresentation?.isChildPresented = false
+        main.async {
+            self.list.dropTill(context) { [weak self] current in
+                self?.currentPresentation = current
+                self?.currentPresentation?.isChildPresented = false
+            }
         }
     }
 
     ///This method is called to drop till the root of the router
     public func showRoot() {
-        list.dropTillHead { [weak self] root in
-            self?.currentPresentation = root
+        DispatchQueue.main.async {
+            self.list.dropTillHead { [weak self] root in
+                self?.currentPresentation = root
+            }
         }
     }
 
     ///This method is called to drop the last context being presented
     public func drop() {
-        let last = list.dropLastContext()
-        self.currentPresentation = last
-        DispatchQueue.main.async {
-            self.currentPresentation?.isChildPresented = false
+        main.async {
+            let last = self.list.dropLastContext()
+            last?.isChildPresented = false
+            self.currentPresentation = last
         }
     }
 
@@ -201,7 +230,6 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
 
     open func onRoot(state: State) {
         self.state = state
-        
     }
 
 }

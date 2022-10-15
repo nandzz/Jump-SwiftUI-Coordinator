@@ -13,15 +13,28 @@ public extension View {
     }
 }
 
+public extension View {
+
+    func sync(published: Binding<Bool>, with binding: Binding<Bool>) -> some View {
+        self
+            .onChange(of: published.wrappedValue, perform: { isPresented in
+                binding.wrappedValue = isPresented
+            })
+            .onChange(of: binding.wrappedValue, perform: { isPresented in
+                published.wrappedValue = isPresented
+            })
+    }
+}
+
 public struct PresentationModifier: ViewModifier {
 
     let mode: Presentation
     var childView: AnyView?
-    var isSheetPresented: Binding<Bool> = .constant(false)
-    var isFullScreenCover: Binding<Bool> = .constant(false)
-    var isNavigating: Binding<Bool> = .constant(false)
-    var isAlertPresented: Binding<Bool> = .constant(false)
-    var isSwaped: Binding<Bool> = .constant(false)
+    var isSheetPresented: Binding<Bool>?
+    var isFullScreenCover: Binding<Bool>?
+    var isNavigating: Binding<Bool>?
+    var isAlertPresented: Binding<Bool>?
+    var isSwaped: Binding<Bool>?
 
 
     init(mode: Presentation, isActive: Binding<Bool>, childView: AnyView?) {
@@ -42,10 +55,11 @@ public struct PresentationModifier: ViewModifier {
     }
 
     public func body(content: Content) -> some View {
-        NavigationLink(destination: childView, isActive: isNavigating) {
+        NavigationLink(destination: childView, isActive: isNavigating ?? .constant(false)) {
             content
-                .sheet(isPresented: isSheetPresented) { childView }
-                .fullScreenCover(isPresented: isFullScreenCover) { childView }
+                .sheet(isPresented: isSheetPresented ?? .constant(false)) { childView }
+                .fullScreenCover(isPresented: isFullScreenCover ?? .constant(false)) { childView }
         }
+        .isDetailLink(false)
     }
 }
