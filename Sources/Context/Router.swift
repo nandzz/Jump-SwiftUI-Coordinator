@@ -18,16 +18,14 @@ fileprivate protocol RouterProtocol {
     var list: NavigationList<Context, State> { get }
     var state: State? { get set }
 
-    func show(context: Context, mode: Presentation)
+    func show(context: Context, mode: Presentation, addNavigationView: Bool)
     func show(contexts: [SequentialNavigation])
     func drop() async
-    func drop(to context: Context)
+    func drop(to context: Context, completion: (() -> Void)?)
     func showRoot()
 
-    func onNext(state: State)
-    func onPop(state: State)
-    func onPop(to: Context, state: State)
-    func onRoot(state: State)
+    func requestForNext(state: State) async
+    func requestForDisappear(state: State) async
 
     init(root: Context)
 }
@@ -103,7 +101,7 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
     //MARK: INIT
 
     required public init(root: Context) {
-        show(context: root)
+        show(context: root, addNavigationView: true)
         main.activate()
     }
 
@@ -118,7 +116,7 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
         self.show(contexts: Array(routes.dropFirst()))
     }
 
-    //MARK: HELP FUNCTIONS
+    //MARK: ROUTING FUNCTIONS
     ///This method is called to show a list of contexts in sequence
     ///
     /// - Parameters:
@@ -142,8 +140,8 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
     /// - Parameters:
     ///    - context It takes the context to be shown
     ///    - mode The mode of presentation for the contexts
-    public func show(context: Context, mode: Presentation = .push) {
-        let nextPresentation = PresentationContext<Context, State>(current: context)
+    public func show(context: Context, mode: Presentation = .push, addNavigationView: Bool = false) {
+        let nextPresentation = PresentationContext<Context, State>(current: context, hasNavigation: addNavigationView)
 
         if rootPresentation == nil {
             self.rootPresentation = nextPresentation
@@ -152,33 +150,35 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
 
         nextPresentation.onNext.sink { [weak self] stream in
             guard let stream = stream else { return }
-            self?.onNext(state: stream.state)
+            self?.requestForNext(state: stream.state)
         }.store(in: &subscriptions)
 
-        nextPresentation.onRoot.sink { [weak self] stream in
+        nextPresentation.onDisappear.sink { [weak self] stream in
             guard let stream = stream else { return }
-            self?.onRoot(state: stream.state)
+            Task { [weak self] in
+                await self?.requestForDisappear(state: stream.state)
+            }
         }.store(in: &subscriptions)
 
-        nextPresentation.onBack.sink { [weak self] stream in
-            guard let stream = stream else { return }
-            self?.onPop(state: stream.state)
+        nextPresentation.onCleanStack.sink { [weak self] context in
+            guard let stream = context else { return }
+            self?.cleanStack(context: stream)
         }.store(in: &subscriptions)
 
-        nextPresentation.onSequencial.sink { [weak self] stream in
-            guard let state = stream else { return }
-        }.store(in: &subscriptions)
+//        nextPresentation.onSequencial.sink { [weak self] stream in
+//            guard let state = stream else { return }
+//        }.store(in: &subscriptions)
 
         if currentPresentation == nil {
             self.currentPresentation = nextPresentation
             self.list.appendContext(nextPresentation)
         } else {
+            self.list.appendContext(nextPresentation)
             main.async {
                 self.currentPresentation?.childView = AnyView(context.view.environmentObject(nextPresentation))
-                self.currentPresentation?.isChildPresented = true
                 self.currentPresentation?.childPresentationMode = mode
+                self.currentPresentation?.presentChild(true)
                 self.currentPresentation = nextPresentation
-                self.list.appendContext(nextPresentation)
             }
         }
     }
@@ -187,49 +187,102 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
     ///
     /// - Parameters:
     ///    - to the specif context you want to drop to
-    public func drop(to context: Context) {
+    public func drop(to context: Context, completion: (() -> Void)? = nil) {
         main.async {
-            self.list.dropTill(context) { [weak self] current in
+            self.list.dropTill(context) { [weak self] current, dismissed  in
                 self?.currentPresentation = current
-                self?.currentPresentation?.isChildPresented = false
+                self?.currentPresentation?.presentChild(false)
+                guard let completion = completion else { return }
+                if dismissed {
+                    self?.main.asyncAfter(deadline: .now() + 1.2, execute: {
+                        completion()
+                    })
+                } else {
+                    self?.main.asyncAfter(deadline: .now() + 0.5, execute: {
+                        completion()
+                    })
+                }
             }
         }
     }
 
+    ///This method is called to drop the last context being presented
+    public func drop() async {
+        await MainActor.run {
+                let last = self.list.dropLastContext()
+                self.currentPresentation = last
+                last?.presentChild(false)
+
+        }
+        try! await Task.sleep(nanoseconds: 500_000_000)
+    }
+
     ///This method is called to drop till the root of the router
     public func showRoot() {
-        DispatchQueue.main.async {
+        main.async {
             self.list.dropTillHead { [weak self] root in
                 self?.currentPresentation = root
             }
         }
     }
 
-    ///This method is called to drop the last context being presented
-    public func drop() {
-        main.async {
-            let last = self.list.dropLastContext()
-            last?.isChildPresented = false
-            self.currentPresentation = last
+    //MARK: CLEAN CONTEXT
+    ///These next methods are used in case a view is dismissed without using our API
+    ///In this case we have to clean the stack by dropping the last context
+    private func cleanStack(context: Context) {
+        if currentContext != context {
+            cleanDrop(current: context)
         }
     }
 
-    // MARK: ROUTING OBSERVER
+    private func cleanDrop(current context: Context) {
+        main.async {
+            self.list.cleaner(context) { [weak self] context in
+                self?.currentPresentation = context
+            }
+        }
+    }
+
+    // MARK: REQUESTS
     
-    open func onNext(state: State) {
+    open func requestForNext(state: State) {
         self.state = state
     }
 
-    open func onPop(state: State) {
+    open func requestForDisappear(state: State) async {
         self.state = state
     }
 
-    open func onPop(to context: Context, state: State) {
+    open func requestPop(to context: Context, state: State) {
         self.state = state
     }
 
-    open func onRoot(state: State) {
+    open func requestRoot(state: State) {
         self.state = state
     }
 
+}
+
+
+public extension Router {
+
+    func onState(_ state: State, do task: () -> Void)  {
+        if state == self.state {
+            task()
+        }
+    }
+
+    func after(
+        dropTill context: Context,
+        goto destionation: Context,
+        with presentation: Presentation,
+        addNavigationView: Bool = false) {
+        drop(to: context) { [weak self] in
+            self?.show(
+                context: destionation,
+                mode: presentation,
+                addNavigationView: addNavigationView
+            )
+        }
+    }
 }

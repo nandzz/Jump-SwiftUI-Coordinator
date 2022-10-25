@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import Combine
 
 public protocol ViewContainer: View {
     associatedtype Context: ViewContext
@@ -8,21 +9,13 @@ public protocol ViewContainer: View {
 }
 
 public extension View {
-    func routing(mode: Presentation, isChildAppearing: Binding<Bool>, childView: AnyView? ) -> some View {
-        modifier(PresentationModifier(mode: mode, isActive: isChildAppearing, childView: childView))
-    }
-}
-
-public extension View {
-
-    func sync(published: Binding<Bool>, with binding: Binding<Bool>) -> some View {
-        self
-            .onChange(of: published.wrappedValue, perform: { isPresented in
-                binding.wrappedValue = isPresented
-            })
-            .onChange(of: binding.wrappedValue, perform: { isPresented in
-                published.wrappedValue = isPresented
-            })
+    func routing(mode: Presentation, isChildAppearing: Binding<Bool>, childView: AnyView?, addNavigationView: Bool ) -> some View {
+        modifier(PresentationModifier(
+            mode: mode,
+            isActive: isChildAppearing,
+            childView: childView,
+            addNavigationView: addNavigationView)
+        )
     }
 }
 
@@ -35,10 +28,11 @@ public struct PresentationModifier: ViewModifier {
     var isNavigating: Binding<Bool>?
     var isAlertPresented: Binding<Bool>?
     var isSwaped: Binding<Bool>?
+    let addNavigationView: Bool
 
-
-    init(mode: Presentation, isActive: Binding<Bool>, childView: AnyView?) {
+    init(mode: Presentation, isActive: Binding<Bool>, childView: AnyView?, addNavigationView: Bool) {
         self.mode = mode
+        self.addNavigationView = addNavigationView
         self.childView = childView
         switch mode {
         case .push:
@@ -55,11 +49,34 @@ public struct PresentationModifier: ViewModifier {
     }
 
     public func body(content: Content) -> some View {
-        NavigationLink(destination: childView, isActive: isNavigating ?? .constant(false)) {
-            content
-                .sheet(isPresented: isSheetPresented ?? .constant(false)) { childView }
-                .fullScreenCover(isPresented: isFullScreenCover ?? .constant(false)) { childView }
+        if addNavigationView {
+            NavigationView {
+                ZStack {
+                    if (isNavigating != nil) {
+                        NavigationLink(
+                            String.init(),
+                            destination: childView,
+                            isActive: isNavigating ?? .constant(false))
+                        .isDetailLink(false)
+                    }
+                    
+                    content
+                }
+            }
+            .sheet(isPresented: isSheetPresented ?? .constant(false)) { childView }
+            .fullScreenCover(isPresented: isFullScreenCover ?? .constant(false)) { childView }
+
+        } else {
+            ZStack {
+                content
+                    .sheet(isPresented: isSheetPresented ?? .constant(false)) { childView }
+                    .fullScreenCover(isPresented: isFullScreenCover ?? .constant(false)) { childView }
+
+                if (isNavigating != nil) {
+                    NavigationLink("", destination: childView, isActive: isNavigating ?? .constant(false))
+                        .isDetailLink(false)
+                }
+            }
         }
-        .isDetailLink(false)
     }
 }

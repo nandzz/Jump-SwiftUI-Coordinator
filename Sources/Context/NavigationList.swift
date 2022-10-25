@@ -17,9 +17,13 @@ public class NavigationList<Context: ViewContext, Status: ContextState> {
 
     let tracker = Tracker<Context, Status>()
 
+    let dispatchGroup = DispatchGroup()
+
     var isEmpty: Bool {
         head == nil
     }
+
+    var isProcessing: Bool = false
 
     var first: Node<Context, Status>? {
         return head
@@ -29,9 +33,14 @@ public class NavigationList<Context: ViewContext, Status: ContextState> {
         return tail
     }
 
-    var lock = NSLock()
-
     func appendContext(_ context: PresentationContext<Context, Status>) {
+
+        dispatchGroup.enter()
+
+        defer {
+            dispatchGroup.leave()
+        }
+
         guard !isEmpty else {
             head = Node(value: context)
             tail = head
@@ -47,6 +56,13 @@ public class NavigationList<Context: ViewContext, Status: ContextState> {
     }
 
     func dropLastContext() -> PresentationContext<Context, Status>? {
+
+        dispatchGroup.enter()
+
+        defer {
+            dispatchGroup.leave()
+        }
+
         guard let tail = tail else {
             return nil
         }
@@ -72,7 +88,10 @@ public class NavigationList<Context: ViewContext, Status: ContextState> {
     }
 
     func dropTill(_ context: Context,
-                  onLast: @escaping (PresentationContext<Context, Status>?) -> Void) {
+                  onLast: @escaping (_ context: PresentationContext<Context, Status>?, _ dismissed: Bool ) -> Void) {
+
+        dispatchGroup.enter()
+        isProcessing = true
 
         guard let tail = tail else {
             return
@@ -81,21 +100,127 @@ public class NavigationList<Context: ViewContext, Status: ContextState> {
         var current = tail
         var breakWhile = false
 
+        var dismissGroup: [PresentationContext<Context, Status>?] = []
+        var last: PresentationContext<Context, Status>?
+        var dismissed = false
+
         while (current.previous != nil) {
-
-
+            dispatchGroup.enter()
             let previusMode = current.previous?.value.childPresentationMode
             if  previusMode == .fullScreen ||
-                previusMode == .modal ||
-                previusMode == .sheet {
-                current.previous?.value.isChildPresented = false
+                    previusMode == .modal ||
+                    previusMode == .sheet {
+                dismissGroup.append(current.previous?.value)
+                dismissed = true
             }
 
             current.previous?.next = nil
             self.tail = current.previous
 
             if current.previous?.value.current == context {
-                onLast(current.previous?.value)
+                breakWhile = true
+            }
+
+            last = current.previous?.value
+            current = current.previous!
+
+            if breakWhile {
+                dispatchGroup.leave()
+                break
+            }
+
+            dispatchGroup.leave()
+        }
+
+        for (index, item) in dismissGroup.enumerated() {
+            dispatchGroup.enter()
+            DispatchQueue.main.asyncAfter(
+                deadline: .now() + .milliseconds(Int(index ) * 600)) {
+                    item?.presentChild(false)
+                    self.dispatchGroup.leave()
+                }
+        }
+
+        self.dispatchGroup.leave()
+
+        dispatchGroup.notify(queue: .main) {
+            onLast(last, dismissed)
+            self.isProcessing = false
+        }
+
+        tracker.trackNavigationList(head: head)
+    }
+
+    func dropTillHead(onRoot: @escaping (PresentationContext<Context, Status>?) -> Void) {
+
+        dispatchGroup.enter()
+        isProcessing = true
+        
+        guard let tail = tail else {
+            return
+        }
+
+        var current = tail
+
+        var dismissGroup: [PresentationContext<Context, Status>?] = []
+
+        while (current.previous != nil) {
+            dispatchGroup.enter()
+            let previusMode = current.previous?.value.childPresentationMode
+            if  previusMode == .fullScreen ||
+                    previusMode == .modal ||
+                    previusMode == .sheet {
+                dismissGroup.append(current.previous?.value)
+            }
+            current.previous?.next = nil
+            self.tail = current.previous
+            current.previous = nil
+            current = self.tail!
+            dispatchGroup.leave()
+        }
+
+        for (index, item) in dismissGroup.enumerated() {
+            dispatchGroup.enter()
+            DispatchQueue.main.asyncAfter(
+                deadline: .now() + .milliseconds(Int(index ) * 600)) {
+                    item?.presentChild(false)
+                    self.dispatchGroup.leave()
+                }
+        }
+
+        dispatchGroup.notify(queue: .main) {
+            self.head?.value.presentChild(false)
+            onRoot(self.head?.value)
+            self.tracker.trackNavigationList(head: self.head)
+            self.isProcessing = false
+            self.dispatchGroup.leave()
+        }
+    }
+
+    /// This method clean all the context till the `context` parameter
+    /// without transitions
+    func cleaner(_ context: Context,
+                 onLast: @escaping (PresentationContext<Context, Status>?) -> Void) {
+
+        if isProcessing { return }
+
+        dispatchGroup.enter()
+
+        guard let tail = self.tail else {
+            return
+        }
+
+        var current = tail
+        var breakWhile = false
+
+        var last: PresentationContext<Context, Status>?
+
+        while (current.previous != nil) {
+            current.previous?.next = nil
+            self.tail = current.previous
+
+            if current.previous?.value.current == context {
+                last = current.previous?.value
                 breakWhile = true
             }
 
@@ -106,35 +231,12 @@ public class NavigationList<Context: ViewContext, Status: ContextState> {
             }
         }
 
-        tracker.trackNavigationList(head: head)
-    }
-
-    func dropTillHead(onRoot: @escaping (PresentationContext<Context, Status>?) -> Void) {
-        guard let tail = tail else {
-            return
+        dispatchGroup.leave()
+        dispatchGroup.notify(queue: .main) {
+            onLast(last)
+            self.tracker.trackNavigationList(head: self.head)
         }
-
-        var current = tail
-
-        while (current.previous != nil) {
-            let previusMode = current.previous?.value.childPresentationMode
-            if  previusMode == .fullScreen ||
-                previusMode == .modal ||
-                previusMode == .sheet {
-                current.previous?.value.isChildPresented = false
-            }
-            current.previous?.next = nil
-            self.tail = current.previous
-            current.previous = nil
-            current = self.tail!
-        }
-
-        self.head?.value.isChildPresented = false
-        onRoot(head?.value)
-        tracker.trackNavigationList(head: head)
     }
-
-    func addContextList(_ context: [Context] ) {}
 
 }
 
