@@ -18,14 +18,14 @@ fileprivate protocol RouterProtocol {
     var list: NavigationList<Context, State> { get }
     var state: State? { get set }
 
-    func show(context: Context, mode: Presentation, addNavigationView: Bool)
+    func show(_ context: Context, _ mode: Presentation, addNavigationView: Bool)
     func show(contexts: [SequentialNavigation])
-    func drop() async
-    func drop(to context: Context, completion: (() -> Void)?)
+    func drop(context: Context)
+    func drop(to context: Context) 
     func showRoot()
 
-    func requestForNext(state: State) async
-    func requestForDisappear(state: State) async
+    func contextRequestNext(state: State) async
+    func contextRequestDismiss(state: State) 
 
     init(root: Context)
 }
@@ -101,7 +101,7 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
     //MARK: INIT
 
     required public init(root: Context) {
-        show(context: root, addNavigationView: true)
+        show(root, addNavigationView: true)
         main.activate()
     }
 
@@ -123,16 +123,7 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
     ///    - contexts It takes an array of contexts to be initialized
     ///    - mode The mode of presentation for the contexts
     public func show(contexts: [SequentialNavigation]) {
-//        UIView.setAnimationsEnabled(false)
-//        for (index, context) in contexts.enumerated() {
-//            DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100 * index), execute: {
-//                self.show(context: context as! Context, mode: mode)
-//            })
-//        }
-//
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-//              UIView.setAnimationsEnabled(true)
-//          }
+
     }
 
     ///This method is called to show a list of contexts in sequence
@@ -140,7 +131,7 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
     /// - Parameters:
     ///    - context It takes the context to be shown
     ///    - mode The mode of presentation for the contexts
-    public func show(context: Context, mode: Presentation = .push, addNavigationView: Bool = false) {
+    public func show(_ context: Context, _ mode: Presentation = .push, addNavigationView: Bool = false)  {
         let nextPresentation = PresentationContext<Context, State>(current: context, hasNavigation: addNavigationView)
 
         if rootPresentation == nil {
@@ -150,14 +141,12 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
 
         nextPresentation.onNext.sink { [weak self] stream in
             guard let stream = stream else { return }
-            self?.requestForNext(state: stream.state)
+            self?.contextRequestNext(state: stream.state)
         }.store(in: &subscriptions)
 
-        nextPresentation.onDisappear.sink { [weak self] stream in
+        nextPresentation.onDismissRequested.sink { [weak self] stream in
             guard let stream = stream else { return }
-            Task { [weak self] in
-                await self?.requestForDisappear(state: stream.state)
-            }
+            self?.contextRequestDismiss(state: stream.state)
         }.store(in: &subscriptions)
 
         nextPresentation.onCleanStack.sink { [weak self] context in
@@ -165,9 +154,12 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
             self?.cleanStack(context: stream)
         }.store(in: &subscriptions)
 
-//        nextPresentation.onSequencial.sink { [weak self] stream in
-//            guard let state = stream else { return }
-//        }.store(in: &subscriptions)
+        nextPresentation.onChildDisappeared.sink { [weak self] hasDisappeared in
+            guard hasDisappeared != nil else { return }
+            guard let context = self?.currentPresentation.current else { return }
+            self?.drop(context: context)
+        }.store(in: &subscriptions)
+
 
         if currentPresentation == nil {
             self.currentPresentation = nextPresentation
@@ -187,34 +179,17 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
     ///
     /// - Parameters:
     ///    - to the specif context you want to drop to
-    public func drop(to context: Context, completion: (() -> Void)? = nil) {
-        main.async {
-            self.list.dropTill(context) { [weak self] current, dismissed  in
-                self?.currentPresentation = current
-                self?.currentPresentation?.presentChild(false)
-                guard let completion = completion else { return }
-                if dismissed {
-                    self?.main.asyncAfter(deadline: .now() + 1.2, execute: {
-                        completion()
-                    })
-                } else {
-                    self?.main.asyncAfter(deadline: .now() + 0.5, execute: {
-                        completion()
-                    })
-                }
-            }
+    public func drop(to context: Context) {
+        self.list.dropTill(context) { [weak self] current  in
+            self?.currentPresentation = current
         }
     }
 
     ///This method is called to drop the last context being presented
-    public func drop() async {
-        await MainActor.run {
-                let last = self.list.dropLastContext()
-                self.currentPresentation = last
-                last?.presentChild(false)
-
-        }
-        try! await Task.sleep(nanoseconds: 500_000_000)
+    fileprivate func drop(context: Context)  {
+        guard let newContext = self.list.dropLastContext() else { return }
+        contextDisappeared(context: context)
+        self.currentPresentation = newContext
     }
 
     ///This method is called to drop till the root of the router
@@ -245,11 +220,11 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
 
     // MARK: REQUESTS
     
-    open func requestForNext(state: State) {
+    open func contextRequestNext(state: State) {
         self.state = state
     }
 
-    open func requestForDisappear(state: State) async {
+    open func contextRequestDismiss(state: State) {
         self.state = state
     }
 
@@ -261,6 +236,10 @@ open class Router<Context: ViewContext, State: ContextState>: RouterProtocol {
         self.state = state
     }
 
+    open func contextDisappeared(context: Context) {
+        
+    }
+
 }
 
 
@@ -269,20 +248,6 @@ public extension Router {
     func onState(_ state: State, do task: () -> Void)  {
         if state == self.state {
             task()
-        }
-    }
-
-    func after(
-        dropTill context: Context,
-        goto destionation: Context,
-        with presentation: Presentation,
-        addNavigationView: Bool = false) {
-        drop(to: context) { [weak self] in
-            self?.show(
-                context: destionation,
-                mode: presentation,
-                addNavigationView: addNavigationView
-            )
         }
     }
 }

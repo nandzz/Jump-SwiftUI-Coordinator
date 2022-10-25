@@ -22,28 +22,29 @@ protocol Routable: ObservableObject {
     var isChildPresented: Bool { get set }
     var childPresentationMode: Presentation { get set }
 
+    //MARK: SUBJECTS
     var next: CurrentValueSubject<(context: Context, state: State)?, Never> { get }
-    var disappear: CurrentValueSubject<(context: Context, state: State)?, Never> { get }
-    var sequential: CurrentValueSubject<(context: Context, state: State)?, Never> { get }
+    var dismiss: CurrentValueSubject<(context: Context, state: State)?, Never> { get }
     var cleanStack: CurrentValueSubject<Context?, Never> { get }
-    var onNext: AnyPublisher<(context: Context, state: State)?, Never> { get }
-    var onDisappear: AnyPublisher<(context: Context, state: State)?, Never> { get }
-    var onCleanStack: AnyPublisher<Context?, Never> { get }
-    func next(emit state: State)
-    func disappear(emit state: State)
+    var childDisappeared: CurrentValueSubject<Void?, Never> { get }
 
-    /// This Method should be called in onAppear
-    func proceedSequencialIfNeeded(emit state: State)
+    //MARK: OBSERVERS
+    var onNext: AnyPublisher<(context: Context, state: State)?, Never> { get }
+    var onDismissRequested: AnyPublisher<(context: Context, state: State)?, Never> { get }
+    var onCleanStack: AnyPublisher<Context?, Never> { get }
+    var onChildDisappeared: AnyPublisher<Void?, Never> { get }
+
+
+    func next(emit state: State)
+    func dismissRequested(emit state: State)
 }
 
 extension Routable {
     //MARK: CONCRETE ROUTING - OBSERVERS
     var onNext: AnyPublisher<(context: Context, state: State)?, Never> { next.eraseToAnyPublisher() }
-    var onDisappear: AnyPublisher<(context: Context, state: State)?, Never> { disappear.eraseToAnyPublisher() }
-    var onSequencial: AnyPublisher<(context: Context, state: State)?, Never> { sequential.eraseToAnyPublisher() }
-    var onCleanStack: AnyPublisher<Context?, Never> {
-        cleanStack.eraseToAnyPublisher()
-    }
+    var onDismissRequested: AnyPublisher<(context: Context, state: State)?, Never> { dismiss.eraseToAnyPublisher() }
+    var onCleanStack: AnyPublisher<Context?, Never> { cleanStack.eraseToAnyPublisher() }
+    var onChildDisappeared: AnyPublisher<Void?, Never> { childDisappeared.eraseToAnyPublisher() }
 }
 
 //MARK: - CONCRETE
@@ -56,43 +57,44 @@ public class PresentationContext<Context: ViewContext, State: ContextState>: Con
 
     //MARK: CONCRETE ROUTING - SUBJECTS
     internal var next: CurrentValueSubject<(context: Context, state: State)?, Never>
-    internal var disappear: CurrentValueSubject<(context: Context, state: State)?, Never>
-    internal var sequential: CurrentValueSubject<(context: Context, state: State)?, Never>
+    internal var dismiss: CurrentValueSubject<(context: Context, state: State)?, Never>
     internal var cleanStack: CurrentValueSubject<Context?, Never>
+    internal var childDisappeared: CurrentValueSubject<Void?, Never>
 
     //MARK: CONCRETE ROUTING - ACTIONS FUNCTIONS
     public func next(emit state: State) { next.send((context: current, state: state)) }
-    public func disappear(emit state: State) { disappear.send((context: current, state: state)) }
-    public func proceedSequencialIfNeeded(emit state: State) { sequential.send((context: current, state: state)) }
+    public func dismissRequested(emit state: State) { dismiss.send((context: current, state: state)) }
+
+    public func removeChild() {
+        if requestedDismiss { return }
+        childDisappeared.send(())
+    }
 
 
     //MARK: CONCRETE ROUTING - PROPERTIES
-    let lock = NSLock()
-    @Published public var isChildPresented: Bool = false {
-        didSet {
-            if !isChildPresented {
-                cleanStack.send(current)
-            }
-            lock.unlock()
-        }
-    }
+    @Published public var isChildPresented: Bool = false
+    @Published public var requestedDismiss = false
 
     public var childPresentationMode: Presentation = .push
     public var childView: AnyView?
 
     func presentChild(_ present: Bool) {
-        lock.lock()
         isChildPresented = present
     }
 
+    func dismissReee() {
+        print("Requested Dismiss")
+        requestedDismiss = true
+    }
     
+
     public required init(current: Context, hasNavigation: Bool) {
         self.current = current
         self.addNavigationView = hasNavigation
         self.next = .init(nil)
-        self.disappear = .init(nil)
-        self.sequential = .init(nil)
+        self.dismiss = .init(nil)
         self.cleanStack = .init(nil)
+        self.childDisappeared = .init(nil)
     }
 }
 

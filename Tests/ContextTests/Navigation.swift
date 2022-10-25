@@ -18,103 +18,103 @@ class NavigationTest: XCTestCase {
     }
 
     func test_two_presentations() throws {
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
         XCTAssert(sut.currentPresentation?.current == .viewB)
     }
 
     func test_five_presentations() throws {
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
 
         XCTAssert(sut.currentPresentation?.current == .viewE)
     }
 
     func test_drop_last_context() throws {
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
 
-        sut.requestForDisappear(state: .idle)
+        sut.contextRequestDismiss(state: .idle)
         XCTAssertEqual(sut.currentContext, .viewD)
     }
 
     func test_drop_two_contexts() throws {
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
 
-        sut.requestForDisappear(state: .idle)
-        sut.requestForDisappear(state: .idle)
+        sut.contextRequestDismiss(state: .idle)
+        sut.contextRequestDismiss(state: .idle)
         XCTAssertEqual(sut.currentContext, .viewC)
     }
 
     func test_drop_single_till_root() throws {
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
 
-        sut.requestForDisappear(state: .idle)
-        sut.requestForDisappear(state: .idle)
-        sut.requestForDisappear(state: .idle)
-        sut.requestForDisappear(state: .idle)
-        sut.requestForDisappear(state: .idle)
+        sut.contextRequestDismiss(state: .idle)
+        sut.contextRequestDismiss(state: .idle)
+        sut.contextRequestDismiss(state: .idle)
+        sut.contextRequestDismiss(state: .idle)
+        sut.contextRequestDismiss(state: .idle)
         XCTAssertEqual(sut.currentContext, .root)
     }
 
     func test_drop_single_till_root_drop_root() throws {
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
 
-        sut.requestForDisappear(state: .idle)
-        sut.requestForDisappear(state: .idle)
-        sut.requestForDisappear(state: .idle)
-        sut.requestForDisappear(state: .idle)
-        sut.requestForDisappear(state: .idle)
-        sut.requestForDisappear(state: .idle)
+        sut.contextRequestDismiss(state: .idle)
+        sut.contextRequestDismiss(state: .idle)
+        sut.contextRequestDismiss(state: .idle)
+        sut.contextRequestDismiss(state: .idle)
+        sut.contextRequestDismiss(state: .idle)
+        sut.contextRequestDismiss(state: .idle)
         XCTAssertEqual(sut.currentPresentation?.current, nil)
     }
 
     func test_drop_till_head_context() throws {
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
 
         sut.requestPop(to: .root, state: .idle)
         XCTAssertEqual(sut.currentContext, .root)
     }
 
     func test_drop_till_middle_context() throws {
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
 
         sut.requestPop(to: .viewA, state: .idle)
         XCTAssertEqual(sut.currentContext, .viewA)
     }
 
     func test_drop_till_one_context() throws {
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
 
         sut.requestPop(to: .viewD, state: .idle)
         XCTAssertEqual(sut.currentContext, .viewD)
@@ -122,11 +122,11 @@ class NavigationTest: XCTestCase {
 
 
     func test_show_root() throws {
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
 
         sut.requestRoot(state: .idle)
         XCTAssertEqual(sut.currentContext, .root)
@@ -134,27 +134,27 @@ class NavigationTest: XCTestCase {
 
     func test_pop_present_cycle() throws {
 
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
 
-        sut.requestForDisappear(state: .idle)
-        sut.requestForDisappear(state: .idle)
-        sut.requestForDisappear(state: .idle)
-        sut.requestForDisappear(state: .idle)
+        sut.contextRequestDismiss(state: .idle)
+        sut.contextRequestDismiss(state: .idle)
+        sut.contextRequestDismiss(state: .idle)
+        sut.contextRequestDismiss(state: .idle)
 
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
 
-        sut.requestForDisappear(state: .idle)
-        sut.requestForDisappear(state: .idle)
-        sut.requestForDisappear(state: .idle)
+        sut.contextRequestDismiss(state: .idle)
+        sut.contextRequestDismiss(state: .idle)
+        sut.contextRequestDismiss(state: .idle)
 
-        sut.requestForNext(state: .idle)
-        sut.requestForNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
+        sut.contextRequestNext(state: .idle)
 
         XCTAssertEqual(sut.currentContext, .viewC)
 

@@ -2,8 +2,8 @@ import Context
 
 class ExampleRouter: Router<HomeContext, HomeContextState> {
 
-    override func requestForNext(state: HomeContextState) {
-        super.requestForNext(state: state)
+    override func contextRequestNext(state: HomeContextState) {
+        super.contextRequestNext(state: state)
         switch currentContext {
         case .root:
             show(context: .viewA, mode: .push)
@@ -35,8 +35,8 @@ class ExampleRouter: Router<HomeContext, HomeContextState> {
         showRoot()
     }
 
-    override func requestForDisappear(state: HomeContextState) {
-        super.requestForDisappear(state: state)
+    override func contextRequestDismiss(state: HomeContextState) {
+        super.contextRequestDismiss(state: state)
         drop()
     }
 
