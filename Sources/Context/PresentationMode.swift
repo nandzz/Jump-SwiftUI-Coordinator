@@ -7,5 +7,6 @@ public enum Presentation {
     case swap
     case fullScreen
     case sheet
+    case idle
 
 }
