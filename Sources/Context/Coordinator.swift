@@ -14,7 +14,6 @@ open class Coordinator<Path: ContextPath> {
     private var viewDisappearedSubscriptions: AnyCancellable?
     private var viewAppearedSubscriptions: AnyCancellable?
     private var rootContext: Context?
-    private var dispatchGroup = DispatchGroup()
     
     public init() {}
 
@@ -110,18 +109,14 @@ open class Coordinator<Path: ContextPath> {
     ///
     /// - Parameters:
     ///   - context: the context requesting the next context
-    open func onNext(context: Path) {
-        print("requesting next")
-    }
+    open func onNext(context: Path) {}
 
     /// You should call super for this method to work properly
     /// This method is called when a view is appearing
     ///
     /// - Parameters:
     ///   - context: the context view appearing
-    open func onAppear(context: Path) {
-        print("context \(context) Appeared")
-    }
+    open func onAppear(context: Path) {}
 
     /// You should call super for this method to work properly
     /// This method is called right after a view disappears
@@ -130,7 +125,6 @@ open class Coordinator<Path: ContextPath> {
     ///   - context: the context view disappearing
     open func onDisappear(context: Path) {
         presenterContainer.removeLast(path: context)
-        print("Context \(context) Disappeared")
     }
 
     /// Do not call this method on self

@@ -14,7 +14,7 @@ public extension View {
     }
 
     @ViewBuilder
-    /// Extension used to put a view on top of the Context
+    /// Extension used to put a view on top of the another view
     func onTop<Content>(isPresented: Binding<Bool>, @ViewBuilder content: @escaping () -> Content) -> some View where Content: View {
         if isPresented.wrappedValue {
             ZStack {
@@ -29,7 +29,7 @@ public extension View {
     }
 
     @ViewBuilder
-    /// Extension to add a navigation view for the content
+    /// Extension to add a navigation link to the view
     func navigationLink<Content: View>(isPresented: Binding<Bool>, @ViewBuilder content: @escaping () -> Content) -> some View {
         self
             .background(NavigationLink(
