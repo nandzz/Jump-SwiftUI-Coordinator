@@ -41,7 +41,7 @@ public class ContextPresenter<Path: ContextPath>: ObservableObject {
     //MARK: - PROPERTIES
     private (set) public var name: Path?
     internal var subscriptions: Set<AnyCancellable> = .init()
-    weak public var context: Context?
+    public var context: Context?
     public var childContext: Context
 
     //MARK: - SUBJECTS

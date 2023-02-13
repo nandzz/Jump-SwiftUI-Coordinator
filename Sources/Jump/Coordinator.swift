@@ -13,7 +13,14 @@ open class Coordinator<Path: ContextPath> {
     private let viewAppeared: PassthroughSubject<Void, Never> = .init()
     private var viewDisappearedSubscriptions: AnyCancellable?
     private var viewAppearedSubscriptions: AnyCancellable?
-    private var rootContext: Context?
+
+    public var currentPath: Path? {
+        return presenterContainer.last?.name
+    }
+
+    public var numberOfContextsPresented: Int {
+        return presenterContainer.count
+    }
     
     public init() {}
 
@@ -21,7 +28,6 @@ open class Coordinator<Path: ContextPath> {
     /// Method used to load the first context of a flow
     public func load(with path: Path, navigation: Bool) -> AnyView {
         let currentContext = Context(addNavigationView: navigation)
-        self.rootContext = currentContext
         let childContext = Context()
         let presenter = ContextPresenter<Path>(with: path, current: currentContext, child: childContext)
         presenterContainer.add(presenter)

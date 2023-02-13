@@ -1,8 +1,15 @@
 import Jump
 import SwiftUI
 
-enum HomeContext: ViewContext {
+enum TestContextActions: ContextAction {
+    case didTapClose
+    case didTapContinue
+    case didTapBack
+    case dismissAfterSucceed
+    case dismissAfterError(NSError)
+}
 
+enum TestContextPaths: ContextPath {
     case root
     case viewA
     case viewB
@@ -14,31 +21,4 @@ enum HomeContext: ViewContext {
     case viewH
     case viewI
     case viewJ
-
-    var view: AnyView {
-        switch self {
-        case .root:
-            return AnyView(Text(""))
-        case .viewA:
-            return AnyView(Text(""))
-        case .viewB:
-            return AnyView(Text(""))
-        case .viewC:
-            return AnyView(Text(""))
-        case .viewD:
-            return AnyView(Text(""))
-        case .viewE:
-            return AnyView(Text(""))
-        case .viewF:
-            return AnyView(Text(""))
-        case .viewG:
-            return AnyView(Text(""))
-        case .viewH:
-            return AnyView(Text(""))
-        case .viewI:
-            return AnyView(Text(""))
-        case .viewJ:
-            return AnyView(Text(""))
-        }
-    }
 }

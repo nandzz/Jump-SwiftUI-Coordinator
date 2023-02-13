@@ -12,6 +12,10 @@ class PresenterContainer<Path: ContextPath> {
         return container.last
     }
 
+    var count: Int {
+        return container.count
+    }
+
     var first: ContextPresenter<Path>? {
         return container.first
     }
