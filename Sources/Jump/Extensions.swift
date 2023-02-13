@@ -50,4 +50,9 @@ public extension View {
             self
         }
     }
+
+    /// Wrap the view inside `AnyView` Concrete type
+    var any: AnyView {
+        AnyView(self)
+    }
 }

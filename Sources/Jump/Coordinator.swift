@@ -18,7 +18,7 @@ open class Coordinator<Path: ContextPath> {
     public init() {}
 
     //MARK: - HELP FUNCTIONS
-    /// Use this method to load the first context of a flow
+    /// Method used to load the first context of a flow
     public func load(with path: Path, navigation: Bool) -> AnyView {
         let currentContext = Context(addNavigationView: navigation)
         self.rootContext = currentContext
@@ -29,7 +29,11 @@ open class Coordinator<Path: ContextPath> {
         return buildView(presenter: presenter)
     }
 
-    public func present(view path: Path, mode: Presentation, addNavigation: Bool = false) {
+    /// Method used to route a specific context with a given path
+    /// - Parameter - path: the specific path to be routed
+    /// - Parameter - mode: the presentation style
+    /// - Parameter - addNavigation: if `true` the view will be wrapped with a navigation view
+    public func present(_ path: Path, mode: Presentation, addNavigation: Bool = false) {
         guard let last = presenterContainer.last else { return }
         let presenter = ContextPresenter(with: path, current: last.childContext, child: Context())
         presenter.context?.presentationMode = mode
@@ -43,11 +47,11 @@ open class Coordinator<Path: ContextPath> {
     /// Dismiss view from the screen
     /// - Parameter - onComplete: called when the dismiss has finished
     public func dismiss(onComplete: (() -> Void)? = nil) {
-        self.presenterContainer.last?.close()
         viewDisappearedSubscriptions = viewDisappeared
             .first()
             .delay(for: .milliseconds(550), scheduler: DispatchQueue.main)
             .sink { onComplete?() }
+        self.presenterContainer.last?.close()
     }
 
     /// Dismiss to a specific view
@@ -66,7 +70,11 @@ open class Coordinator<Path: ContextPath> {
     }
 
     /// Dismiss till root view
-    public func showRoot() {
+    public func showRoot(onComplete: (() -> Void)? = nil) {
+        viewDisappearedSubscriptions = viewDisappeared
+            .first()
+            .delay(for: .milliseconds(550), scheduler: DispatchQueue.main)
+            .sink { onComplete?() }
         self.presenterContainer.second?.close()
     }
 
@@ -77,7 +85,7 @@ open class Coordinator<Path: ContextPath> {
             .onNext
             .sink { [weak self] path in
                 guard let path = path else { return }
-                self?.onNext(context: path)
+                self?.onNext(current: path)
             }
             .store(in: &subscriptions)
 
@@ -109,7 +117,7 @@ open class Coordinator<Path: ContextPath> {
     ///
     /// - Parameters:
     ///   - context: the context requesting the next context
-    open func onNext(context: Path) {}
+    open func onNext(current path: Path) {}
 
     /// You should call super for this method to work properly
     /// This method is called when a view is appearing
@@ -124,6 +132,7 @@ open class Coordinator<Path: ContextPath> {
     /// - Parameters:
     ///   - context: the context view disappearing
     open func onDisappear(context: Path) {
+        print("Dismissed view")
         presenterContainer.removeLast(path: context)
     }
 

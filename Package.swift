@@ -4,25 +4,25 @@
 import PackageDescription
 
 let package = Package(
-    name: "Context",
+    name: "Jump",
     platforms: [.iOS(.v14)],
     products: [
         .library(
-            name: "Context",
-            targets: ["Context"]),
+            name: "Jump",
+            targets: ["Jump"]),
     ],
     dependencies: [],
     targets: [
         .target(
-            name: "Context",
+            name: "Jump",
             dependencies: []),
         .target(
             name: "Mocks",
-            dependencies: [ "Context"],
+            dependencies: [ "Jump"],
             path: "./Tests/Mocks"
         ),
         .testTarget(
-            name: "ContextTests",
-            dependencies: ["Context", "Mocks"]),
+            name: "JumpTests",
+            dependencies: ["Jump", "Mocks"]),
     ]
 )

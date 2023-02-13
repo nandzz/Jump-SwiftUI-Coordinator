@@ -1,5 +1,5 @@
 import XCTest
-@testable import Context
+@testable import Jump
 @testable import Mocks
 
 class NavigationTest: XCTestCase {

@@ -8,10 +8,6 @@ class PresenterContainer<Path: ContextPath> {
         return container.isEmpty
     }
 
-    var count: Int {
-        return container.count
-    }
-
     var last: ContextPresenter<Path>? {
         return container.last
     }
