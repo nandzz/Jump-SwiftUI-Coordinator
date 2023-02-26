@@ -159,7 +159,7 @@ public enum ProfileRootActions: ContextAction {
 
 > Piece of Adivise:  declate these actions over the declarion of the view, so they can be easily be found. 
 
-> The actions has to conform to ##Equatable## and ##Hashable## as well as any associated information that will be sent to the coordinator using associated types. You can conform the actions directly to ContextAction that implements ##Equatable## and ##Hashable## protocols.
+> The actions has to conform to **Equatable** and **Hashable** as well as any associated information that will be sent to the coordinator using associated types. You can conform the actions directly to ContextAction that implements **Equatable** and **Hashable** protocols.
 
 <br>
 
@@ -288,5 +288,5 @@ class ProfileCoordinator: Coordinator<ProfilePaths> {
 ```
 
 As you can see, inside the coordinator we also have methods responsible to tell us wich paths are currently presented or removed. 
-The function buildView is where you gonna assemble your view and return it as **AnyView**. Jump has an extension **.any** that makes this construction easier. If you use **dependecy containers** here is a good place to inject it inside your viewModels.
+The function buildView is where you gonna assemble your view and return it as **AnyView**. Jump has an extension **.any** that makes this construction easier. If you use **Dependecy Containers** here is a good place to inject it inside your ViewModels.
 
