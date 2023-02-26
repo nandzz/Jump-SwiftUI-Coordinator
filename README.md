@@ -8,6 +8,6 @@
 > Simple way to coordinate flows in an app
 
 
-![Jump-SwiftUI-Coordinator](https://user-images.githubusercontent.com/75216897/221434302-90d5320a-b051-4fa0-9072-386ce2c626c7.png)
+![Jump-SwiftUI-Coordinator](https://user-images.githubusercontent.com/75216897/221434358-41ce5cc2-68ef-4c1d-a29c-2f8438e7aa82.png)
 
 
