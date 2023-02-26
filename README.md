@@ -294,7 +294,7 @@ The function buildView is where you gonna assemble your view and return it as **
 
 It's highly recommended to understand if this coordinator can really help your development. Recently Apple lauched NavigationStack which facilitates much more the navigation with SwiftUI. Take a look more here: [NavigationStack](https://developer.apple.com/documentation/swiftui/navigationstack)
 
-Currently is becoming really hard to do routing with pure swiftUI without wrap views inside HostingControllers, moreover it’s even harder to understand the flow of the screens once the routing system is created, for new developers it can be a torment having to browse the whole project to understand the navigation system.
+Currently is becoming really hard to do routing with pure SwiftUI without wrap views inside HostingControllers, moreover it’s even harder to understand the flow of the screens once the routing system is created, for new developers it can be a torment having to browse the whole project to understand the navigation system.
 
 ## License 📄
 [MIT License](LICENSE).
