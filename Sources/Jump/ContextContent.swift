@@ -3,30 +3,30 @@ import SwiftUI
 import Combine
 
 public struct ContextContent<Path: ContextPath>: View {
-
+    
     @ObservedObject var presenter: ContextPresenter<Path>
-
+    
     public var view: AnyView
-
+    
     public var body: some View {
         presentation.with(navigation: presenter.context?.hasNavigationView ?? false)
     }
-
+    
     private var mode: Presentation {
         presenter.childContext.presentationMode
     }
-
+    
     private var isActive: Bool {
         presenter.childContext.isOnScreenObserver
     }
-
+    
     public init(_ presenter: ContextPresenter<Path>, @ViewBuilder content: ( @escaping (_ path: Path) -> Void) -> some View) {
         self.presenter = presenter
-        self.view = AnyView(content({ path in
-            presenter.next(emit: path)
+        self.view = AnyView(content({ [weak presenter] path in
+            presenter?.next(emit: path)
         }))
     }
-
+    
     @ViewBuilder
     var presentation: some View {
         ZStack {
@@ -39,7 +39,7 @@ public struct ContextContent<Path: ContextPath>: View {
                     presenter.childContext.view
                 })
                 .swap(isPresented: Binding(get: {
-                   isActive && mode == .swap
+                    isActive && mode == .swap
                 }, set: { value in
                     presenter.childContext.isOnScreenObserver = value
                 })) {
@@ -62,7 +62,7 @@ public struct ContextContent<Path: ContextPath>: View {
                     })) {
                         presenter.childContext.view
                     }
-
+                
                 ZStack {}
                     .sheet(isPresented: Binding(get: {
                         isActive && mode == .sheet

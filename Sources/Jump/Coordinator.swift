@@ -4,26 +4,26 @@ import Combine
 
 
 open class Coordinator<Path: ContextPath> {
-
+    
     private let presenterContainer: PresenterContainer<Path> = .init()
     private var subscriptions: Set<AnyCancellable> = .init()
     private let main = DispatchQueue.main
-
+    
     private let viewDisappeared: PassthroughSubject<Void, Never> = .init()
     private let viewAppeared: PassthroughSubject<Void, Never> = .init()
     private var viewDisappearedSubscriptions: AnyCancellable?
     private var viewAppearedSubscriptions: AnyCancellable?
-
+    
     public var currentPath: Path? {
         return presenterContainer.last?.name
     }
-
+    
     public var numberOfContextsPresented: Int {
         return presenterContainer.count
     }
     
     public init() {}
-
+    
     //MARK: - HELP FUNCTIONS
     /// Method used to load the first context of a flow
     public func load(with path: Path, navigation: Bool) -> AnyView {
@@ -34,7 +34,7 @@ open class Coordinator<Path: ContextPath> {
         addObservers(for: presenter)
         return buildView(presenter: presenter)
     }
-
+    
     /// Method used to route a specific context with a given path
     /// - Parameter - path: the specific path to be routed
     /// - Parameter - mode: the presentation style
@@ -49,7 +49,7 @@ open class Coordinator<Path: ContextPath> {
         main.async { presenter.context?.isOnScreenObserver = true }
         presenter.context?.view = buildView(presenter: presenter)
     }
-
+    
     /// Dismiss view from the screen
     /// - Parameter - onComplete: called when the dismiss has finished
     public func dismiss(onComplete: (() -> Void)? = nil) {
@@ -59,7 +59,7 @@ open class Coordinator<Path: ContextPath> {
             .sink { onComplete?() }
         self.presenterContainer.last?.close()
     }
-
+    
     /// Dismiss to a specific view
     /// - Parameter - path: the specific path to return
     /// - Parameter - onComplete: called when the dismiss has finished
@@ -74,19 +74,25 @@ open class Coordinator<Path: ContextPath> {
             }
         }.fire()
     }
-
+    
     /// Dismiss till root view
     public func showRoot(onComplete: (() -> Void)? = nil) {
-        viewDisappearedSubscriptions = viewDisappeared
-            .first()
-            .delay(for: .milliseconds(550), scheduler: DispatchQueue.main)
-            .sink { onComplete?() }
-        self.presenterContainer.second?.close()
+        var paths = self.presenterContainer.removeTillRoot()
+        Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { timer in
+            guard !paths.isEmpty else {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.45, execute: {
+                    onComplete?()
+                })
+                timer.invalidate()
+                return
+            }
+            paths.removeLast().close()
+        }.fire()
     }
-
+    
     //MARK: - OBSERVER
     private func addObservers(for presenter: ContextPresenter<Path>) {
-
+        
         presenter
             .onNext
             .sink { [weak self] path in
@@ -94,7 +100,7 @@ open class Coordinator<Path: ContextPath> {
                 self?.onNext(current: path)
             }
             .store(in: &subscriptions)
-
+        
         presenter
             .onAppear
             .removeDuplicates()
@@ -105,7 +111,7 @@ open class Coordinator<Path: ContextPath> {
                 self?.viewAppeared.send()
             }
             .store(in: &subscriptions)
-
+        
         presenter
             .onDisappear
             .removeDuplicates()
@@ -115,33 +121,32 @@ open class Coordinator<Path: ContextPath> {
                 self?.viewDisappeared.send(())
             }
             .store(in: &subscriptions)
-
+        
     }
-
+    
     //MARK: - OPEN METHODS
     /// This method is called when a presenter is requesting the next context
     ///
     /// - Parameters:
     ///   - context: the context requesting the next context
     open func onNext(current path: Path) {}
-
+    
     /// You should call super for this method to work properly
     /// This method is called when a view is appearing
     ///
     /// - Parameters:
     ///   - context: the context view appearing
     open func onAppear(context: Path) {}
-
+    
     /// You should call super for this method to work properly
     /// This method is called right after a view disappears
     ///
     /// - Parameters:
     ///   - context: the context view disappearing
     open func onDisappear(context: Path) {
-        print("Dismissed view")
         presenterContainer.removeLast(path: context)
     }
-
+    
     /// Do not call this method on self
     /// This method is called by the coordinator to create the next view requested based in action conditions
     ///
