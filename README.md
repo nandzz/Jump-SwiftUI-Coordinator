@@ -129,9 +129,10 @@ Every view has their actions. Taking the example of Profile section we can have 
 * didTapOnChangePicture
 * didTapOnSettings
 * didTapOnEditBio
-* didTapOnPictures
+* didTapOnBadges
 * didTapOnDismiss
 * dismissAfterError
+* viewModelDidProduceWarning
 * idle
 
 > The actions can also be consequences of state change in the viewModel (ex. Network Error, API Call succeeded )
@@ -148,15 +149,15 @@ public enum ProfileRootActions: ContextAction {
     case didTapOnChangePicture
     case didTapOnSettings
     case didTapOnEditBio
-    case didTapOnPictures
+    case didTapOnBadges
 
     // Actions from state change
     case dismissAfterError(error:)
-    case completeAfterSuccess(data:)
+    case viewModelDidProduceWarning
 }
 ```
 
-> It's advisable to declate these actions over the declarion of the view, so they can be easily be found. 
+> Piece of Adivise:  declate these actions over the declarion of the view, so they can be easily be found. 
 
 > The actions has to conform to ##Equatable## and ##Hashable## as well as any associated information that will be sent to the coordinator using associated types. You can conform the actions directly to ContextAction that implements ##Equatable## and ##Hashable## protocols.
 
@@ -168,18 +169,121 @@ public enum ProfileRootActions: ContextAction {
 
 Previously we declared the paths of the Profile flow with an enum. Now we gonna give actions to these paths to each one of this paths. 
 
-**Remember:** Each View has it's actions and each view has it path defined inside Paths
+**Remember:** Each View has its actions and each view has it path defined inside Paths
 
 ```swift
 enum ProfilePaths: ContextPath {
-		case root(RootActions)
-    case changePicture(ChangePictureActions = .idle)
-    case settings(SettingsActions = .idle)
-    case editBio(EditBioActions = .idle)
-	  case pictures(PictureActions = .idle)
+    case root(ProfileRootActions)
+    case changePicture(ProfileChangePictureActions = .idle)
+    case settings(ProfileSettingsActions = .idle)
+    case editBio(ProfileEditBioActions = .idle)
+    case badges(ProfileBadgesActions = .idle)
 }
 ```
 
 > By Having an idle action inside the enum of actions we are able to assign the init the path without a given action.
 
+### Dispatch the actions
+
+From the view we can now dispatch actions to the coordinator 
+
+
+```swift
+
+class ProfileRootViewModel: ObservableObject {
+    
+    enum Status {
+        case error
+        case warning
+        case ready
+    }
+    
+    var status: Status = .ready
+}
+
+struct ProfileRootView: ContextView {
+   
+    var presenter: ContextPresenter<ProfilePaths>
+    @ObservedObject var viewModel: ProfileViewModel
+    
+    var body: some View {
+        ContextContent<ProfilePaths>(presenter) { dispatch in
+            VStack {
+                Button("Edit Bio") {
+                    dispatch(.root(.didTapOnEditBio))
+                }
+                
+                Button("Settings") {
+                    dispatch(.root(.didTapOnSettings))
+                }
+            }
+            .onChange(of: viewModel.status) { status in
+                switch status {
+                case .error:
+                    dispatch(.root(.dismissAfterError))
+                case .warning:
+                    dispatch(.root(.viewModelDidProduceWarning))
+                case .ready:
+                    break
+                }
+            }
+        }
+    }
+}
+
+```
+
+
+> The actions can be from interactions or viewModel state changes
+
+
+### Handle the Actions
+
+The coordinator is really easy to understand. You receive requests from Views and these requests comes with actions and eventually data associated in these actions. You need to handle the next step based on the action of the current path.
+
+> You can handle these requests inside the **onNext(current path: ProfilePaths)** as you can see below, or you can create an extensions for your coordinator and implement functions of requests. For example: **func requestFromProfileRootView(_ action: ProfileRootActions)**
+
+```swift
+class ProfileCoordinator: Coordinator<ProfilePaths> {
+    
+    override func onNext(current path: ProfilePaths) {
+        switch path {
+        case .root(let action):
+            switch action {
+            case .didTapOnSettings:
+                present(.settings(), mode: .sheet)
+            case .didTapOnEditBio:
+                present(.editBio(), mode: .push)
+            case .viewModelDidProduceWarning:
+                dismiss()
+            case .dismissAfterError:
+                present(.warning, mode: .fullScreen)
+            case .idle:
+                break
+                // view just appeared
+            }
+        default:
+            break
+        }
+    }
+    
+    override func onAppear(context: ProfilePaths) {
+        super.onAppear(context: context)
+    }
+    
+    override func onDisappear(context: ProfilePaths) {
+        super.onDisappear(context: context)
+    }
+    
+    override func buildView(presenter: ContextPresenter<ProfilePaths>) -> AnyView {
+        switch presenter.name {
+        case .root:
+            let viewModel = ProfileViewModel()
+            return ProfileRootView(presenter: presenter, viewModel: viewModel).any
+        default:
+            fatalError("You need to implement the construction of every view of your paths")
+        }
+    }
+}
+```
 
