@@ -13,6 +13,7 @@ open class Coordinator<Path: ContextPath> {
     private let viewAppeared: PassthroughSubject<Void, Never> = .init()
     private var viewDisappearedSubscriptions: AnyCancellable?
     private var viewAppearedSubscriptions: AnyCancellable?
+    private var rootContext: Context?
     
     public var currentPath: Path? {
         return presenterContainer.last?.name
@@ -32,6 +33,7 @@ open class Coordinator<Path: ContextPath> {
         let presenter = ContextPresenter<Path>(with: path, current: currentContext, child: childContext)
         presenterContainer.add(presenter)
         addObservers(for: presenter)
+        self.rootContext = currentContext
         return buildView(presenter: presenter)
     }
     

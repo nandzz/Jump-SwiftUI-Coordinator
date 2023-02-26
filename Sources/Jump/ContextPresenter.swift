@@ -9,7 +9,7 @@ public class Context: ObservableObject  {
     public var view: AnyView?
 
     @Published public var isOnScreenObserver: Bool = false {
-        didSet {
+        didSet { 
             self.objectWillChange.send()
         }
     }
@@ -41,7 +41,7 @@ public class ContextPresenter<Path: ContextPath>: ObservableObject {
     //MARK: - PROPERTIES
     private (set) public var name: Path?
     internal var subscriptions: Set<AnyCancellable> = .init()
-    public var context: Context?
+    public weak var context: Context?
     public var childContext: Context
 
     //MARK: - SUBJECTS
@@ -88,6 +88,7 @@ public class ContextPresenter<Path: ContextPath>: ObservableObject {
             .dropFirst()
             .removeDuplicates()
             .sink { [weak self] isOnScreen in
+                if !isOnScreen { self?.childContext.view = nil }
                 self?.objectWillChange.send()
                 self?.childContext.objectWillChange.send()
             }
