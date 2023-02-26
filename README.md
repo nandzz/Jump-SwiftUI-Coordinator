@@ -77,11 +77,11 @@ The enum has to conform to ContextPath and can be called with the name of your c
 
 ```
 enum ProfilePaths: ContextPath {
-		case root
+    case root
     case changePicture
     case settings
     case editBio
-	  case badges
+    case badges
 }
 ```
 
