@@ -45,6 +45,7 @@
 * [Create Actions](#createactions-)
 * [Take decisions](#takedecisions-)
 
+<br>
 ## Installation ⚙️
 
 In Xcode add the dependency to your project via File > Add Packages > Search or Enter Package URL and use the following url:
@@ -57,7 +58,7 @@ Once added, import the package in your code:
 ```swift
 import SwiftUIRouter
 ```
-
+<br>
 ### Define Paths 🚙
 
 Every flow has their given paths ( the view’s routing name ), so a path corresponds to a View. But what is these paths? If inside an app we have a section called Profile, this section can contain many paths
@@ -84,7 +85,7 @@ enum ProfilePaths: ContextPath {
     case badges
 }
 ```
-
+<br>
 ### Create the Coordinator 🤟
 
 The coordinator has to conform to ##Coordinator## Type and its associated paths ( the one we just create in the section above )
@@ -92,8 +93,7 @@ The coordinator has to conform to ##Coordinator## Type and its associated paths 
 ```swift
 class ProfileCoordinator: Coordinator<ProfilePaths> {}
 ```
-
-
+<br>
 ### Create Views 📺
 
 Each view using jump has to conform to `ContextView`
@@ -114,7 +114,7 @@ struct ContentView: ContextView {
     }
 }
 ```
-
+<br>
 ### Create Actions 👨‍💻
 
 Every view has their actions. Taking the example of Profile section we can have the following actions for the root view
@@ -125,23 +125,28 @@ Every view has their actions. Taking the example of Profile section we can have 
 * didTapOnPictures
 * didTapOnDismiss
 * dismissAfterError
+* idle
+
+**You always need to have an idle action inside the enum**
 
 > The actions can also be consequences of state change in the viewModel (ex. Network Error, API Call succeeded )
 
+
 Here is an example of how to define the profile actions:
+
 
 ```swift
 public enum ProfileRootActions: ContextAction {
     case idle
-		// Actions from interaction 
+    // Actions from interaction 
     case didTapOnChangePicture
     case didTapOnSettings
     case didTapOnEditBio
     case didTapOnPictures
 
-		// Actions from state change
-		case dismissAfterError(error:)
-		case completeAfterSuccess(data:)
+    // Actions from state change
+    case dismissAfterError(error:)
+    case completeAfterSuccess(data:)
 }
 ```
 
