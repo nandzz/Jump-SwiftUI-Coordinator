@@ -62,7 +62,7 @@ import SwiftUIRouter
 
 Every flow has their given paths ( the view’s routing name ), so a path corresponds to a View. But what is these paths? If inside an app we have a section called Profile, this section can contain many paths
 
-```json
+```
 Profile {
   root
   changePicture
