@@ -72,7 +72,7 @@ Profile {
 }
 ```
 
-Here is how you create these paths for ***Jump** by using an enum. 
+Here is how you create these paths for **Jump** by using an enum. 
 The enum has to conform to ContextPath and can be called with the name of your choice. 
 
 ```
@@ -86,6 +86,13 @@ enum ProfilePaths: ContextPath {
 ```
 
 ### Create the Coordinator 🤟
+
+The coordinator has to conform to Coordinator Type and its associated generic paths
+
+```
+class ProfileCoordinator: Coordinator<ProfilePaths> {}
+```
+
 
 ### Create Views 📺
 
