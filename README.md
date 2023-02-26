@@ -39,11 +39,11 @@
 ## Tutorial
 
 * [Installation](#installation-)
-* [Define Paths](#define Paths-)
-* [Create the Coordinator](#create the Coordinator-)
-* [Create Views](#create Views-)
-* [Create Actions](#create Actions-)
-* [Take decisions](#cake decisions-)
+* [Define Paths](#definepaths-)
+* [Create the Coordinator](#createthecoordinator-)
+* [Create Views](#createviews-)
+* [Create Actions](#createactions-)
+* [Take decisions](#takedecisions-)
 
 ## Installation ⚙️
 
