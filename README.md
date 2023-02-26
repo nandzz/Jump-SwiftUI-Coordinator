@@ -87,7 +87,7 @@ enum ProfilePaths: ContextPath {
 
 ### Create the Coordinator 🤟
 
-The coordinator has to conform to Coordinator Type and its associated generic paths
+The coordinator has to conform to ##Coordinator## Type and its associated paths ( the one we just create in the section above )
 
 ```swift
 class ProfileCoordinator: Coordinator<ProfilePaths> {}
@@ -95,6 +95,25 @@ class ProfileCoordinator: Coordinator<ProfilePaths> {}
 
 
 ### Create Views 📺
+
+Each view using jump has to conform to `ContextView`
+Here is how to declare the View:
+
+> You can avoid to type the typealias by declaring directly the presenter as below
+
+```swift
+struct ContentView: ContextView {
+    
+   var presenter: ContextPresenter<ProfilePaths>
+
+    var body: some View {
+        ContextContent<ProfilePaths>(presenter) { emit in
+            // Use ContextContent to wrap your view passing the paths 
+            // to its generic type and initialising it with the presenter injected. 
+        }
+    }
+}
+```
 
 ### Create Actions 👨‍💻
 
