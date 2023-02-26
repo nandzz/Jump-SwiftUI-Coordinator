@@ -60,6 +60,31 @@ import SwiftUIRouter
 
 ### Define Paths 🚙
 
+Every flow has their given paths ( the view’s routing name ), so a path corresponds to a View. But what is these paths? If inside an app we have a section called Profile, this section can contain many paths
+
+```
+Profile {
+  root
+  changePicture
+  settings
+  editBio
+  badges
+}
+```
+
+Here is how you create these paths for ***Jump** by using an enum. 
+The enum has to conform to ContextPath and can be called with the name of your choice. 
+
+```
+enum ProfilePaths: ContextPath {
+		case root
+    case changePicture
+    case settings
+    case editBio
+	  case badges
+}
+```
+
 ### Create the Coordinator 🤟
 
 ### Create Views 📺
