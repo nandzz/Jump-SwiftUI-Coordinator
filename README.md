@@ -62,7 +62,7 @@ import SwiftUIRouter
 
 Every flow has their given paths ( the view’s routing name ), so a path corresponds to a View. But what is these paths? If inside an app we have a section called Profile, this section can contain many paths
 
-```
+```json
 Profile {
   root
   changePicture
@@ -75,7 +75,7 @@ Profile {
 Here is how you create these paths for **Jump** by using an enum. 
 The enum has to conform to ContextPath and can be called with the name of your choice. 
 
-```
+```swift
 enum ProfilePaths: ContextPath {
     case root
     case changePicture
@@ -89,7 +89,7 @@ enum ProfilePaths: ContextPath {
 
 The coordinator has to conform to Coordinator Type and its associated generic paths
 
-```
+```swift
 class ProfileCoordinator: Coordinator<ProfilePaths> {}
 ```
 
