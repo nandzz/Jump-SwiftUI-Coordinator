@@ -281,9 +281,12 @@ class ProfileCoordinator: Coordinator<ProfilePaths> {
             let viewModel = ProfileViewModel()
             return ProfileRootView(presenter: presenter, viewModel: viewModel).any
         default:
-            fatalError("You need to implement the construction of every view of your paths")
+            fatalError("You need to implement the construction of every view for your paths")
         }
     }
 }
 ```
+
+As you can see, inside the coordinator we also have methods responsible to tell us wich paths are currently presented or removed. 
+The function buildView is where you gonna assemble your view and return it as **AnyView**. Jump has an extension **.any** that makes this construction easier. If you use **dependecy containers** here is a good place to inject it inside your viewModels.
 
