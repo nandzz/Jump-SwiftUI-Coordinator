@@ -45,7 +45,6 @@
 * [Create Actions](#createactions-)
 * [Take decisions](#takedecisions-)
 
-<br>
 ## Installation ⚙️
 
 In Xcode add the dependency to your project via File > Add Packages > Search or Enter Package URL and use the following url:
@@ -58,7 +57,9 @@ Once added, import the package in your code:
 ```swift
 import SwiftUIRouter
 ```
+
 <br>
+
 ### Define Paths 🚙
 
 Every flow has their given paths ( the view’s routing name ), so a path corresponds to a View. But what is these paths? If inside an app we have a section called Profile, this section can contain many paths
@@ -85,7 +86,9 @@ enum ProfilePaths: ContextPath {
     case badges
 }
 ```
+
 <br>
+
 ### Create the Coordinator 🤟
 
 The coordinator has to conform to ##Coordinator## Type and its associated paths ( the one we just create in the section above )
@@ -93,7 +96,9 @@ The coordinator has to conform to ##Coordinator## Type and its associated paths 
 ```swift
 class ProfileCoordinator: Coordinator<ProfilePaths> {}
 ```
+
 <br>
+
 ### Create Views 📺
 
 Each view using jump has to conform to `ContextView`
@@ -114,7 +119,9 @@ struct ContentView: ContextView {
     }
 }
 ```
+
 <br>
+
 ### Create Actions 👨‍💻
 
 Every view has their actions. Taking the example of Profile section we can have the following actions for the root view
@@ -127,10 +134,9 @@ Every view has their actions. Taking the example of Profile section we can have 
 * dismissAfterError
 * idle
 
-**You always need to have an idle action inside the enum**
-
 > The actions can also be consequences of state change in the viewModel (ex. Network Error, API Call succeeded )
 
+**You always need to have an idle action inside the enum**
 
 Here is an example of how to define the profile actions:
 
@@ -150,6 +156,30 @@ public enum ProfileRootActions: ContextAction {
 }
 ```
 
+> It's advisable to declate these actions over the declarion of the view, so they can be easily be found. 
+
 > The actions has to conform to ##Equatable## and ##Hashable## as well as any associated information that will be sent to the coordinator using associated types. You can conform the actions directly to ContextAction that implements ##Equatable## and ##Hashable## protocols.
 
-### Take decisions 🚦
+<br>
+
+## Take decisions 🚦
+
+### Give the Paths Actions
+
+Previously we declared the paths of the Profile flow with an enum. Now we gonna give actions to these paths to each one of this paths. 
+
+**Remember:** Each View has it's actions and each view has it path defined inside Paths
+
+```swift
+enum ProfilePaths: ContextPath {
+		case root(RootActions)
+    case changePicture(ChangePictureActions = .idle)
+    case settings(SettingsActions = .idle)
+    case editBio(EditBioActions = .idle)
+	  case pictures(PictureActions = .idle)
+}
+```
+
+> By Having an idle action inside the enum of actions we are able to assign the init the path without a given action.
+
+
