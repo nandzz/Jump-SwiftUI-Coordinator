@@ -107,8 +107,8 @@ struct ContentView: ContextView {
    var presenter: ContextPresenter<ProfilePaths>
 
     var body: some View {
-        ContextContent<ProfilePaths>(presenter) { emit in
-            // Use ContextContent to wrap your view passing the paths 
+        ContextContent<ProfilePaths>(presenter) { dispatch in
+            // Use ContextContent to wrap your view passing the paths you created
             // to its generic type and initialising it with the presenter injected. 
         }
     }
