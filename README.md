@@ -165,7 +165,7 @@ public enum ProfileRootActions: ContextAction {
 
 ## Take decisions 🚦
 
-### Give the Paths Actions
+### `Give the Paths Actions`
 
 Previously we declared the paths of the Profile flow with an enum. Now we gonna give actions to these paths to each one of this paths. 
 
@@ -183,7 +183,7 @@ enum ProfilePaths: ContextPath {
 
 > By Having an idle action inside the enum of actions we are able to assign the init the path without a given action.
 
-### Dispatch the actions
+### `Dispatch the actions`
 
 From the view we can now dispatch actions to the coordinator 
 
@@ -236,8 +236,7 @@ struct ProfileRootView: ContextView {
 
 > The actions can be from interactions or viewModel state changes
 
-
-### Handle the Actions
+### `Handle the Actions`
 
 The coordinator is really easy to understand. You receive requests from Views and these requests comes with actions and eventually data associated in these actions. You need to handle the next step based on the action of the current path.
 
