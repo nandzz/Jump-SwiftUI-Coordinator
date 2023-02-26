@@ -117,4 +117,34 @@ struct ContentView: ContextView {
 
 ### Create Actions 👨‍💻
 
+Every view has their actions. Taking the example of Profile section we can have the following actions for the root view
+
+* didTapOnChangePicture
+* didTapOnSettings
+* didTapOnEditBio
+* didTapOnPictures
+* didTapOnDismiss
+* dismissAfterError
+
+> The actions can also be consequences of state change in the viewModel (ex. Network Error, API Call succeeded )
+
+Here is an example of how to define the profile actions:
+
+```swift
+public enum ProfileRootActions: ContextAction {
+    case idle
+		// Actions from interaction 
+    case didTapOnChangePicture
+    case didTapOnSettings
+    case didTapOnEditBio
+    case didTapOnPictures
+
+		// Actions from state change
+		case dismissAfterError(error:)
+		case completeAfterSuccess(data:)
+}
+```
+
+> The actions has to conform to ##Equatable## and ##Hashable## as well as any associated information that will be sent to the coordinator using associated types. You can conform the actions directly to ContextAction that implements ##Equatable## and ##Hashable## protocols.
+
 ### Take decisions 🚦
