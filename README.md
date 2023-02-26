@@ -58,8 +58,6 @@ Once added, import the package in your code:
 import SwiftUIRouter
 ```
 
-<br>
-
 ### Define Paths 🚙
 
 Every flow has their given paths ( the view’s routing name ), so a path corresponds to a View. But what is these paths? If inside an app we have a section called Profile, this section can contain many paths
@@ -87,8 +85,6 @@ enum ProfilePaths: ContextPath {
 }
 ```
 
-<br>
-
 ### Create the Coordinator 🤟
 
 The coordinator has to conform to ##Coordinator## Type and its associated paths ( the one we just create in the section above )
@@ -96,8 +92,6 @@ The coordinator has to conform to ##Coordinator## Type and its associated paths 
 ```swift
 class ProfileCoordinator: Coordinator<ProfilePaths> {}
 ```
-
-<br>
 
 ### Create Views 📺
 
@@ -119,8 +113,6 @@ struct ContentView: ContextView {
     }
 }
 ```
-
-<br>
 
 ### Create Actions 👨‍💻
 
@@ -161,7 +153,6 @@ public enum ProfileRootActions: ContextAction {
 
 > The actions has to conform to **Equatable** and **Hashable** as well as any associated information that will be sent to the coordinator using associated types. You can conform the actions directly to ContextAction that implements **Equatable** and **Hashable** protocols.
 
-<br>
 
 ## Take decisions 🚦
 
