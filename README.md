@@ -14,16 +14,14 @@
 
 <br>
 
-## Features
+### Features
 
 * Embedded Router
 * Action based decision
 * Content Wrapper
 * Built for Injection 
 
-<br>
-
-## More about
+### More about
 
 - Advisable to use with MVVM
 - Built to simplify navigation decisions
@@ -31,11 +29,21 @@
 
 <br>
 
-## UITests
+### UITests
 
 > UITest repository: [Jump UITests](https://github.com/nandzz/Jump-SwiftUI-Coordinator)
 
 <br>
+
+
+## Tutorial
+
+* [Installation](#installation-)
+* [Define Paths](#define Paths-)
+* [Create the Coordinator](#create the Coordinator-)
+* [Create Views](#create Views-)
+* [Create Actions](#create Actions-)
+* [Take decisions](#cake decisions-)
 
 ## Installation ⚙️
 
@@ -49,3 +57,13 @@ Once added, import the package in your code:
 ```swift
 import SwiftUIRouter
 ```
+
+### Define Paths 🚙
+
+### Create the Coordinator 🤟
+
+### Create Views 📺
+
+### Create Actions 👨‍💻
+
+### Take decisions 🚦
