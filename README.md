@@ -12,6 +12,8 @@
 
 ![Jump-SwiftUI-Coordinator](https://user-images.githubusercontent.com/75216897/221434358-41ce5cc2-68ef-4c1d-a29c-2f8438e7aa82.png)
 
+<br>
+
 ## Features
 
 * Embedded Router
@@ -19,6 +21,7 @@
 * Content Wrapper
 * Built for Injection 
 
+<br>
 
 ## More about
 
@@ -26,9 +29,13 @@
 - Built to simplify navigation decisions
 - Unit tested / UI tested
 
+<br>
+
 ## UITests
 
 > UITest repository: [Jump UITests](https://github.com/nandzz/Jump-SwiftUI-Coordinator)
+
+<br>
 
 ## Installation ⚙️
 
