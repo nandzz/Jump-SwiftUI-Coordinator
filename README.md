@@ -31,7 +31,7 @@
 
 ### UITests
 
-> UITest repository: [Jump UITests](https://github.com/nandzz/Jump-SwiftUI-Coordinator)
+> UITest repository: [Jump UITests](https://github.com/nandzz/Jump---SwiftUI-Coordinator-UITests)
 
 <br>
 
