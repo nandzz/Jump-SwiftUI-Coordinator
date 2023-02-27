@@ -285,7 +285,7 @@ As you can see, inside the coordinator we also have methods responsible to tell 
 * Directly wrap the content inside the ContextContent without the need for the user to do it always.
 * Evaluate the possibility to implement the navigation stack for iOS>16
 * Present in sequence
-* Evaluate the need to make Coordinators to have parent/child relations between each other
+* Evaluate the need to make Coordinators have parent/child relations with each other
 * Improve Documentation
 
 ## Considerations
