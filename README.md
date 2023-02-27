@@ -278,8 +278,7 @@ class ProfileCoordinator: Coordinator<ProfilePaths> {
 }
 ```
 
-As you can see, inside the coordinator we also have methods responsible to tell us wich paths are currently presented or removed. 
-The function buildView is where you gonna assemble your view and return it as **AnyView**. Jump has an extension **.any** that makes this construction easier. If you use **Dependecy Containers**, here is a good place to inject it inside your ViewModels.
+As you can see, inside the coordinator we also have methods responsible to tell us which paths are currently presented or removed. The function buildView is where you gonna assemble your view and return it as **AnyView**. Jump has an extension .any that makes this construction easier. If you use **Dependecy Containers**, here is a good place to inject it inside your ViewModels.
 
 ## What to Improve / Open Points
 
