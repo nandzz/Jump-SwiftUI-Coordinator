@@ -47,7 +47,7 @@
 
 ## Installation ⚙️
 
-In Xcode add the dependency to your project via File > Add Packages > Search or Enter Package URL and use the following url:
+In Xcode, add the dependency to your project via File > Add Packages > Search or Enter Package URL and use the following URL:
 
 ```
 https://github.com/nandzz/Jump-SwiftUI-Coordinator
@@ -60,7 +60,7 @@ import SwiftUIRouter
 
 ### Define Paths 🚙
 
-Every flow has their given paths ( the view’s routing name ), so a path corresponds to a View. But what are these paths? If inside an app we have a section called Profile, this section can contain many paths:
+Every flow has its given paths ( the view’s routing name ), so a path corresponds to a View. But what are these paths? If inside an App we have a section called Profile, this section can contain many paths:
 
 ```
 Profile {
@@ -116,7 +116,7 @@ struct ContentView: ContextView {
 
 ### Create Actions 👨‍💻
 
-Every view has their actions. Taking the example of Profile section we can have the following actions for the root view
+Every view has its actions. Taking the example of the Profile section we can have the following actions for the root view
 
 * didTapOnChangePicture
 * didTapOnSettings
@@ -158,9 +158,9 @@ public enum ProfileRootActions: ContextAction {
 
 ### `Give Actions to the Paths`
 
-Previously we have declared the paths for the Profile with an enum. Now we gonna give actions to each one of this paths. 
+Previously we have declared the paths for the Profile with an enum. Now we gonna give actions to each one of these paths. 
 
-**Remember:** Each View has its path and action defined. You have associate the actions to the path:
+**Remember:** Each View has its path and action defined. You have to associate the actions with the path:
 
 ```swift
 enum ProfilePaths: ContextPath {
@@ -229,9 +229,9 @@ struct ProfileRootView: ContextView {
 
 ### `Handle the Actions`
 
-The coordinator is really easy to understand. You receive a routing request from the view and these request comes with an action and eventually data associated. You need to handle the action to take a routing decision.
+The coordinator can be easily understanded. You receive a routing request from the view and these request comes with an action and eventually data associated. You need to handle the action to take a routing decision.
 
-> You can handle these requests inside the **onNext(current path: ProfilePaths)** as you can see below, or you can create an extensions for your coordinator and implement functions of requests. For example: **func requestFromProfileRootView(_ action: ProfileRootActions)**
+> You can handle these requests inside the **onNext(current path: ProfilePaths)** as you can see below, or you can create an extension for your coordinator and implement the functions of requests. For example: **func requestFromProfileRootView(_ action: ProfileRootActions)**
 
 ```swift
 class ProfileCoordinator: Coordinator<ProfilePaths> {
@@ -283,9 +283,9 @@ The function buildView is where you gonna assemble your view and return it as **
 
 ## Considerations
 
-It's highly recommended to understand if this coordinator can really help your development. Recently Apple lauched NavigationStack which facilitates much more the navigation with SwiftUI. Take a look more here: [NavigationStack](https://developer.apple.com/documentation/swiftui/navigationstack)
+It's highly recommended to understand if this coordinator can help your development. Recently Apple launched NavigationStack which facilitates much more navigation with SwiftUI. Take a look more here: [NavigationStack](https://developer.apple.com/documentation/swiftui/navigationstack)
 
-Currently is becoming really hard to do routing with pure SwiftUI without wrap views inside HostingControllers, moreover it’s even harder to understand the flow of the screens once the routing system is created, for new developers it can be a torment having to browse the whole project to understand the navigation system.
+Currently is becoming hard to do routing with pure SwiftUI without wrap views inside HostingControllers, moreover, it’s even harder to understand the flow of the screens once the routing system is created, for new developers it can be a torment having to browse the whole project to understand the navigation system.
 
 ## License 📄
 [MIT License](LICENSE).
