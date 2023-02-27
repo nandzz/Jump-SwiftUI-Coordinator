@@ -127,7 +127,7 @@ Every view has its actions. Taking the example of the Profile section we can hav
 * viewModelDidProduceWarning
 * idle
 
-> Actions can also be consequences of state changes in the viewModel (ex. Network Error, API Call succeeded )
+> Actions can also be consequences of state changes in the viewModel (ex. Network Error, API Call succeeded)
 
 :warning: **You always need to have an idle action inside the enum**
 
