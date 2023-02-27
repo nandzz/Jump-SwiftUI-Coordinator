@@ -44,6 +44,7 @@
 * [Create Views](#createviews-)
 * [Create Actions](#createactions-)
 * [Take decisions](#takedecisions-)
+* [What to Improve / Open Points](#whattoimprove/openpoints-)
 
 ## Installation ⚙️
 
@@ -280,6 +281,13 @@ class ProfileCoordinator: Coordinator<ProfilePaths> {
 As you can see, inside the coordinator we also have methods responsible to tell us wich paths are currently presented or removed. 
 The function buildView is where you gonna assemble your view and return it as **AnyView**. Jump has an extension **.any** that makes this construction easier. If you use **Dependecy Containers**, here is a good place to inject it inside your ViewModels.
 
+## What to Improve / Open Points
+
+* Directly wrap the content inside the ContextContent without the need for the user to do it always.
+* Evaluate the possibility to implement the navigation stack for iOS>16
+* Present in sequence
+* Evaluate the need to make Coordinators to have parent/child relations between each other
+* Improve Documentation
 
 ## Considerations
 
