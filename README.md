@@ -230,7 +230,7 @@ struct ProfileRootView: ContextView {
 
 ### `Handle the Actions`
 
-The coordinator can be easily understanded. You receive a routing request from the view and these request comes with an action and eventually data associated. You need to handle the action to take a routing decision.
+The coordinator can be easily understood. You receive a routing request from the view and this request comes with an action and eventually data associated. You need to handle the action to take a routing decision.
 
 > You can handle these requests inside the **onNext(current path: ProfilePaths)** as you can see below, or you can create an extension for your coordinator and implement the functions of requests. For example: **func requestFromProfileRootView(_ action: ProfileRootActions)**
 
