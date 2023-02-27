@@ -60,7 +60,7 @@ import SwiftUIRouter
 
 ### Define Paths 🚙
 
-Every flow has their given paths ( the view’s routing name ), so a path corresponds to a View. But what is these paths? If inside an app we have a section called Profile, this section can contain many paths
+Every flow has their given paths ( the view’s routing name ), so a path corresponds to a View. But what are these paths? If inside an app we have a section called Profile, this section can contain many paths:
 
 ```
 Profile {
@@ -87,7 +87,7 @@ enum ProfilePaths: ContextPath {
 
 ### Create the Coordinator 🤟
 
-The coordinator has to conform to ##Coordinator## Type and its associated paths ( the one we just create in the section above )
+The coordinator has to conform to **Coordinator** Type and its associated paths ( the type we just have created in the section above )
 
 ```swift
 class ProfileCoordinator: Coordinator<ProfilePaths> {}
@@ -98,7 +98,7 @@ class ProfileCoordinator: Coordinator<ProfilePaths> {}
 Each view using jump has to conform to `ContextView`
 Here is how to declare the View:
 
-> You can avoid to type the typealias by declaring directly the presenter as below
+> You can avoid to write the typealias by declaring directly the presenter as below
 
 ```swift
 struct ContentView: ContextView {
@@ -127,7 +127,7 @@ Every view has their actions. Taking the example of Profile section we can have 
 * viewModelDidProduceWarning
 * idle
 
-> The actions can also be consequences of state change in the viewModel (ex. Network Error, API Call succeeded )
+> Actions can also be consequences of state changes in the viewModel (ex. Network Error, API Call succeeded )
 
 :warning: **You always need to have an idle action inside the enum**
 
@@ -156,11 +156,11 @@ public enum ProfileRootActions: ContextAction {
 
 ## Take decisions 🚦
 
-### `Give the Paths Actions`
+### `Give Actions to the Paths`
 
-Previously we declared the paths of the Profile flow with an enum. Now we gonna give actions to these paths to each one of this paths. 
+Previously we have declared the paths for the Profile with an enum. Now we gonna give actions to each one of this paths. 
 
-**Remember:** Each View has its actions and each view has it path defined inside Paths
+**Remember:** Each View has its path and action defined. You have associate the actions to the path:
 
 ```swift
 enum ProfilePaths: ContextPath {
@@ -172,11 +172,11 @@ enum ProfilePaths: ContextPath {
 }
 ```
 
-> By Having an idle action inside the enum of actions we are able to assign the init the path without a given action.
+> By Having an idle action inside the enum of actions we are able to init the path without a given action.
 
 ### `Dispatch the actions`
 
-From the view we can now dispatch actions to the coordinator 
+Now from the view we can dispatch actions to the coordinator 
 
 
 ```swift
@@ -229,7 +229,7 @@ struct ProfileRootView: ContextView {
 
 ### `Handle the Actions`
 
-The coordinator is really easy to understand. You receive requests from Views and these requests comes with actions and eventually data associated in these actions. You need to handle the next step based on the action of the current path.
+The coordinator is really easy to understand. You receive a routing request from the view and these request comes with an action and eventually data associated. You need to handle the action to take a routing decision.
 
 > You can handle these requests inside the **onNext(current path: ProfilePaths)** as you can see below, or you can create an extensions for your coordinator and implement functions of requests. For example: **func requestFromProfileRootView(_ action: ProfileRootActions)**
 
